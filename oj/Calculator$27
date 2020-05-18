@@ -1,0 +1,22 @@
+package oj.q1to100;
+
+import java.util.Scanner;
+
+public class Calculator$27 {
+    public static void main(String[] args) {
+        // please define the JAVA input here. For example: Scanner s = new Scanner(System.in);
+        Scanner scan = new Scanner(System.in);
+        String s = scan.nextLine();
+        // please finish the function body here.
+        String s1 = s.replace(" ", "");
+        String s2 = s1.replace("-", "+-");  //方便全做加法
+        String[] arr = s2.split("\\+"); //因为{}、+、*、|、\、?等符号在正则表达示中有相应的不同意义，所以在使用时要进行转义处理。
+        int sum = 0;
+        for (String e : arr) {
+            int temp = Integer.parseInt(e);
+            sum += temp;
+        }
+        // please define the JAVA output here. For example: System.out.println(s.nextInt());
+        System.out.println(sum);
+    }
+}
