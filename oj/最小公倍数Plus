@@ -1,0 +1,27 @@
+package oj.q1to100;
+
+import java.math.BigInteger;
+import java.util.Scanner;
+
+public class 最小公倍数Plus {
+    public static void main(String[] args) {
+        // please define the JAVA input here. For example: Scanner s = new Scanner(System.in);
+        Scanner scan = new Scanner(System.in);
+        // please finish the function body here.
+        while (scan.hasNext()) {
+            int N = scan.nextInt();
+            BigInteger result = lcmPlus(N);
+            System.out.println(result);
+        }
+        // please define the JAVA output here. For example: System.out.println(s.nextInt());
+    }
+
+    private static BigInteger lcmPlus(int N) {
+        BigInteger result = new BigInteger("1");
+        for (int i = 2; i <= N; i++) {
+            BigInteger ii = BigInteger.valueOf(i);
+            result = result.multiply(ii).divide(result.gcd(ii));  // 两数之积 = gcd与lcm之积
+        }
+        return result;
+    }
+}
