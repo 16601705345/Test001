@@ -1,0 +1,109 @@
+用户IP规划						
+网段	类型	数量	分类	网络配置	用途	操作
+网段1(管理网段)	外部网络		起始IP~终止IP	185.185.1.10~185.185.1.20	①TaiShan 200 (型号 2280) IBMC IP	自动填充IP
+网段1(管理网段)	外部网络		子网掩码	255.255.255.0	②CNA、VRM IP	自动填充IP
+网段1(管理网段)	外部网络	6	目的网段	185.0.0.0	③管理节点硬件监控模块通信IP/客户端登录/北向IP	自动填充IP
+网段1(管理网段)	外部网络		目的掩码	255.0.0.0		自动填充IP
+网段1(管理网段)	外部网络	1	网关地址	185.185.1.250		自动填充IP
+网段3(节点间通信网段)	内部网络	11	起始IP~终止IP	186.186.1.10~186.186.1.30	①各节点的节点间通信IP	自动填充IP
+网段3(节点间通信网段)	内部网络	1	子网掩码	255.255.255.0	②节点间通信浮动IP	自动填充IP
+网段3(节点间通信网段)	内部网络	1	目的网段			自动填充IP
+网段3(节点间通信网段)	内部网络	1	目的掩码			自动填充IP
+网段3(节点间通信网段)	内部网络	1	网关地址			自动填充IP
+						
+对象	IP地址	备注				
+EasySuite所在PC的管理网络IP	185.185.1.250					
+EasySuite所在PC的节点间通信网络IP	186.186.1.250					
+						
+iBMC配置						
+服务器编号	iBMC IP	子网掩码	网关	iBMC用户	iBMC密码规划值	
+1	10.118.179.178	255.255.254.0	10.118.178.1	Administrator	Admin@9000	
+
+
+VRM信息配置						
+配置项	默认值	规划值	备注			
+VRM安装语言选择	英语(美国)	中文(中国)				
+VRM安装模式	单站点安装	单站点安装				
+VRM安装服务器编号	1	1				
+VRM节点名称	VRM01	VRM01				
+VRM节点管理IP		185.185.1.15				
+VRM节点子网掩码		255.255.255.0				
+VRM节点网关		185.185.1.250				
+VRM管理员账户	admin	admin				
+VRM管理员账户密码		Changeme_123				
+						
+CNA信息配置						
+服务器编号	CNA主机名	IP地址	掩码	默认网关	VLAN ID	CNA主机密码设置
+1	CNA_01	185.185.1.14	255.255.255.0	185.185.1.250	0	Changeme_123
+
+
+								
+管理面节点配置								
+节点	 操作系统配置项	操作系统配置规划值	分类	节点间通信IP	客户端登录/北向/节点登录IP			
+OMP_01	主机名	OMP_01	IP	186.186.1.13	185.185.1.13			
+OMP_01	主机编号	1	掩码	255.255.255.0	255.255.255.0			
+OMP_01	数据存储名称	datastore	目的网段		185.0.0.0			
+OMP_01	vCPU(个)	4	目的掩码		255.0.0.0			
+OMP_01	内存(G)	16	网关地址		185.185.1.250			
+OMP_01	存储(G)	500	网口	eth0	eth3			
+								
+数据库节点配置								
+节点	 操作系统配置项	操作系统配置规划值	分类	节点间通信IP				
+DB_01	主机名	DB_01	IP	186.186.1.11				
+DB_01	主机编号	1	掩码	255.255.255.0				
+DB_01	数据存储名称	datastore	目的网段					
+DB_01	vCPU(个)	8	目的掩码					
+DB_01	内存(G)	32	网关地址					
+DB_01	存储(G)	500	网口	eth0				
+								
+平台服务部署节点配置								
+节点	 操作系统配置项	操作系统配置规划值	分类	节点间通信IP	客户端登录/北向/节点登录IP			
+Common_Service_01	主机名	Common_Service_01	IP	186.186.1.12	185.185.1.12			
+Common_Service_01	主机编号	1	掩码	255.255.255.0	255.255.255.0			
+Common_Service_01	数据存储名称	datastore	目的网段		185.0.0.0			
+Common_Service_01	vCPU(个)	16	目的掩码		255.0.0.0			
+Common_Service_01	内存(G)	64	网关地址		185.185.1.250			
+Common_Service_01	存储(G)	300	网口	eth0	eth3			
+								
+大数据管理和计算节点配置								
+节点	 操作系统配置项	操作系统配置规划值	分类	节点间通信IP	WEB浮动IP	OMS浮动IP	DB浮动IP	JHS浮动IP
+Analyzer_Calc_Storage_01	主机名	Analyzer_Calc_Storage_01	IP	186.186.1.16	186.186.1.17	186.186.1.18	186.186.1.19	186.186.1.20
+Analyzer_Calc_Storage_01	主机编号	1	掩码	255.255.255.0	255.255.255.0	255.255.255.0	255.255.255.0	255.255.255.0
+Analyzer_Calc_Storage_01	数据存储名称	datastore	目的网段					
+Analyzer_Calc_Storage_01	vCPU(个)	24	目的掩码					
+Analyzer_Calc_Storage_01	内存(G)	96	网关地址					
+Analyzer_Calc_Storage_01	存储(G)	200	网口	eth0	eth0:web	eth0:oms	eth0:DBS	eth0:JHS
+Analyzer_Calc_Storage_02	主机名	Analyzer_Calc_Storage_02	IP	186.186.1.14				
+Analyzer_Calc_Storage_02	主机编号	1	掩码	255.255.255.0				
+Analyzer_Calc_Storage_02	数据存储名称	datastore	目的网段					
+Analyzer_Calc_Storage_02	vCPU(个)	24	目的掩码					
+Analyzer_Calc_Storage_02	内存(G)	96	网关地址					
+Analyzer_Calc_Storage_02	存储(G)	200	网口	eth0	eth0:web	eth0:oms	eth0:DBS	eth0:JHS
+Analyzer_Calc_Storage_03	主机名	Analyzer_Calc_Storage_03	IP	186.186.1.15				
+Analyzer_Calc_Storage_03	主机编号	1	掩码	255.255.255.0				
+Analyzer_Calc_Storage_03	数据存储名称	datastore	目的网段					
+Analyzer_Calc_Storage_03	vCPU(个)	24	目的掩码					
+Analyzer_Calc_Storage_03	内存(G)	96	网关地址					
+Analyzer_Calc_Storage_03	存储(G)	200	网口	eth0	eth0:web	eth0:oms	eth0:DBS	eth0:JHS
+								
+节点添加新磁盘配置								
+节点	 添加扩展RAID0盘							
+Analyzer_Calc_Storage01	100,datastore2,datastore3							
+Analyzer_Calc_Storage02	100,datastore4,datastore5							
+Analyzer_Calc_Storage03	100,datastore6,datastore7							
+
+
+
+
+分类	规划值	注意
+NCE安装语言		NCE安装语言即NCE安装完成后唯一使用的系统语言。请谨慎确认NCE安装语言。
+OS时区		请选择服务器所在地区的时区。
+		
+操作系统用户密码配置		
+操作系统用户	所属节点	默认值
+root	All	Changeme_123
+		
+操作系统安全加固配置		
+说明	选项	
+是否进行安全加固	是	
+
