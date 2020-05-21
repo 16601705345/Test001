@@ -628,3 +628,413 @@ break;
 
 }
 
+A. 501 B. 1 C. 0 D. 5
+
+题目二、缺失break输出什么？
+-java代码
+01
+void test() {
+02
+    int input = 2;
+03
+    switch (input) {
+04
+        case 1:
+05
+            System.out.println("1");
+06
+        case 2:
+07
+            System.out.println("2");
+08
+        case 3:
+09
+            System.out.println("3");
+10
+        default:
+11
+            System.out.println("default");
+12
+    }
+13
+}
+
+
+答案：
+
+ 2
+
+3
+
+default
+
+
+1.2.4   switch语句break编码风格要求
+规则3.9 case语句块结束时如果不加break，需要有注释说明
+-java代码
+01
+switch (label) {
+02
+    case 0:
+03
+    case 1:
+04
+        System.out.println("1");
+05
+        // $FALL-THROUGH$
+06
+    case 2:
+07
+        System.out.println("2");
+08
+        // $FALL-THROUGH$
+09
+    case 3:
+10
+        System.out.println("3");
+11
+        break;
+12
+    default:
+13
+        System.out.println("Our dear customer demands all of the following be printed in the default case.");
+14
+}
+
+
+
+  [ 回目录 ]1.3 异常体系   
+ 
+
+1.3.1  异常泄露敏感信息
+敏感异常包装在非敏感异常抛出，不能防止敏感信息泄露
+
+
+
+ 
+
+正确做法：不抛出任何异常信息，直接在后台记录错误日志。
+
+1.3.2   异常描述
+Error表示正常应用程序已无能为力，比如OutOfMemoryError
+
+Throwable是所有Error和Exception的超类，他们的区别是：
+
+Error类一般是指与虚拟机相关的问题，如系统崩溃，虚拟机错误，内存空间不足，方法调用栈溢等。对于这类错误的导致的应用程序中断，仅靠程序本身无法恢复和和预防，遇到这样的错误，建议让程序终止。
+
+Exception类表示程序可以处理的异常，可以捕获且可能恢复。遇到这类异常，应该尽可能处理异常，使程序恢复运行，而不应该随意终止异常。
+
+Exception类又分为运行时异常（Runtime Exception）和受检查的异常(Checked Exception )。运行时异常编译能通过，但是一运行就终止了，程序不会处理运行时异常，出现这类异常，程序会终止。而受检查的异常，要么用try(){...}catch(){...}捕获，要么用throws字句声明抛出，交给它的父类处理，否则编译不会通过。
+
+
+Java中常见的运行时异常：
+1) ArithmeticException - 在执行算术过程中，不符合数学、计算机计算要求（如除以0、数据范围要求）时引发ArithmeticException。
+2) ArrayIndexOutOfBoundsException - IndexOutOfBoundsException子类，用于表示数组越界。
+3) ArrayStoreException - 当尝试将错误类型的实例存储到数组中抛出IndexOutOfBoundsException。
+4) ClassCastException - 当类型强制转换失败时抛出ClassCastException
+5) IllegalArgumentException - 当方法传递了一个不合法或不正确的参数时引发IllegalArgumentException
+6) IllegalStateException - 当应用程序在非法或不适当的时间调用了方法时抛出IllegalStateException。
+
+运行时异常考察方式：
+void test() {
+    int a = 1;
+   int b = 0;
+   try {
+        int c = a / b;
+       System.out.println(c);
+   } catch (ArrayIndexOutOfBoundsException ex) {
+      System.out.println("OutOfBound");
+  } catch (NumberFormatException ex) {
+     System.out.println("NumberFormatException");
+  } catch (Exception ex) {
+   System.out.println("Error");
+ }
+  System.out.println("left");
+}
+输出：
+Error
+Left
+ 
+练习题：
+
+（多选题）能够产生DoS攻击的敏感异常有哪些（）？
+
+A. Java.lang.OutOfMemoryError
+
+B. Java.lang.StackOverflowError
+
+C. javax.naming.InsufficientResourcesException
+
+D. java.util.jar.JarException
+
+答案: ABC
+
+以下异常列表哪些属于敏感异常（）？
+
+A. java.io.FileNotFoundException
+
+B. java.net.BindException
+
+C. java.util.ConcurrentModificationException
+
+D. java.sql.SQLException
+
+E. java.lang.NullPointerException
+
+F. java.lang.IllegalArgumentException
+
+答案：ABCD
+
+（单选）异常捕获继承关系，ExceptionB 继承了 ExceptionA，执行下面代码输出的内容（）
+
+-java代码
+01
+public class Test {
+02
+    static class ExceptionA extends Exception {
+03
+    }
+04
+ 
+05
+    static class ExceptionB extends ExceptionA {
+06
+    }
+07
+ 
+08
+    public static void main(String[] args) {
+09
+        try {
+10
+            int a = 3;
+11
+            throw new ExceptionB();
+12
+        } catch (ExceptionA e1) {
+13
+            System.out.println("ExceptionA");
+14
+        } catch (Exception e) {
+15
+            System.out.println("Exception");
+16
+        } finally {
+17
+            System.out.println("Finally");
+18
+        }
+19
+ 
+20
+    }
+21
+}
+
+输出：
+ExceptionA
+Finally
+
+
+  [ 回目录 ]1.4 集合体系结构/迭代器   
+1.4.1不需要索引的场景，优先使用foreach替代for循环
+for-each循环通过完全隐藏迭代器或index变量，避免出错，
+
+ 
+
+扩展阅读：《Effective Java》58.for-each 循环优于传统for循环
+
+https://github.com/sjsdfg/effective-java-3rd-chinese/blob/master/docs/notes/58.%20for-each%20%E5%BE%AA%E7%8E%AF%E4%BC%98%E4%BA%8E%E4%BC%A0%E7%BB%9F%20for%20%E5%BE%AA%E7%8E%AF.md
+
+ 
+
+1.4.2        LinkedHashMap
+构造方法中accessOrder为true，可以当做LRU(Least recently used)缓存使用
+
+
+
+ 
+
+1.4.3        HashMap中key的hashCode相同，equals判断不相等
+https://images2018.cnblogs.com/blog/720994/201806/720994-20180628154821640-2143700356.png
+
+扩展阅读：
+
+https://yikun.github.io/2015/04/01/Java-HashMap%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0/
+
+题目： 
+
+设哈希表长m＝14，哈希函数H（key）＝key％11。表中已有4个结点：addr(15)=4，addr(38)=5，addr(61)=6，addr(84)=7，其余地址为空。如果用二次探测再散列处理冲突，关键字为49的结点的地址是() 
+
+答案：9
+解答：Hi = ( H (key) + di ) MOD m
+其中i=1,2,3,......k(k<=m-1)、H(key)为哈希函数、m为哈希表表长；di为增量序列。
+当di=1,2,3,....m-1,称为线性探测再散列；下次考试会不会考察现行探测再散列？(5+1)%14,(5+2)%14,(5+3)%14... (5+13)%14
+当di=(正负)K^2(K=1,2,3,...m/2)称为二次探测再散列（先正后负），说白了就是求模结果加减[1,m/2]的平方:(5+1)%14,(5+4)%14,(5+9)%14
+题目中哈希表长为14，所以代入后应该是这样的：
+H1=(5+1)%14=6 冲突
+H1=(5-1)%14=4 冲突
+H2=(5+4)%14=9 无冲突
+所以结果为9
+
+1.4.4  ConcurrentHashMap的多线程并发存取
+computeIfAbsent
+
+
+
+扩展阅读：https://crossoverjie.top/2018/07/23/java-senior/ConcurrentHashMap/
+
+ 
+
+1.4.5  Collection的直接子类
+Java集合体现，考察Collection直接子类
+
+
+
+ 考题脑现：
+
+（1）下列哪个数据结构不是继承自集合Collection类？
+
+A. List B. Set C. Queue D. Map
+
+答案： D
+
+（2）不修改Map说的是什么，如下语句是否可以正确执行？ 答案：否
+
+Map<Integer,String> test = new HashMap<>();
+test.put(1,"hello");
+test.put(2,"unmodifiable");
+Map<Integer,String> umap = Collections.unmodifiableMap(test);
+umap.clear();
+
+解析：执行上述语句会抛出不支持操作异常
+
+Exception in thread "main" java.lang.UnsupportedOperationException
+at java.util.Collections$UnmodifiableMap.clear(Collections.java:1466)
+
+ 
+
+  [ 回目录 ]1.5 泛型   
+1.5.1   泛型赋值操作
+
+
+就算容器里装的东西之间有继承关系，但容器之间是没有继承关系的
+
+ 
+
+1.5.2        extends和super
+Java的泛型可按PECS(Producer Extends Consumer Super)原则来设计上界和下界类型。在泛型编程时，使用部分限定的形参时，<? super T>和<? extends T>的使用场景容易混淆。PECS原则可以帮助很好记住它们：生产者（Producer）使用extends，消费者（Consumer）使用super。
+
+
+
+声明一个带泛型的类或接口的时候，建议限制可以用的泛型类型，避免接口使用者乱用。 
+
+泛型通配符 <? extends T> 来接收返回的数据，此写法的泛型集合不能使用 add 方法， 而 <? superT> 不能使用 get 方法，作为接口调用赋值时易出错。
+
+
+
+1. 频繁往外读取内容的，适合用 <? extends T> 。
+
+2. 经常往里插入的，适合用 <? super T>
+
+
+
+ 
+
+扩展阅读：https://www.zhihu.com/question/20400700
+
+ 直接上图：
+
+
+
+
+
+  [ 回目录 ]1.6  线程体系结构   
+
+1.6.1线程同步
+CountDownLatch 一个或多个线程等待其他线程完成一系列操作后才执行
+
+https://images2015.cnblogs.com/blog/658141/201707/658141-20170717135253706-802506084.png
+
+CyclicBarrier  多个线程互相等待，直到到达同一个同步点，再继续一起执行。适用于多个线程有固定的多步需要执行，线程间互相等待，当都执行完了，在一起执行下一步。https://images2017.cnblogs.com/blog/658141/201709/658141-20170923170149618-1491101497.png
+
+Phaser； 与cyclicbarrier类似，功能更强。它支持任务在多个点都进行同步，支持动态调整注册任务的数量
+
+https://images2017.cnblogs.com/blog/658141/201709/658141-20170923195018868-478494103.png
+
+ 
+
+Exchanger 可以在两个线程之间交换数据，只能是2个线程，他不支持更多的线程之间互换数据，当线程A调用Exchange对象的exchange()方法后，他会陷入阻塞状态，直到线程B也调用了exchange()方法，然后以线程安全的方式交换数据，之后线程A和B继续运行
+
+ 
+
+Semaphore: 可以控制同时访问的线程个数，通过 acquire() 获取一个许可，如果没有就等待，而 release() 释放一个许可; 比如多个窗口叫号，窗口都忙时，顾客等待，有空闲时，最新等待的被通知
+
+ 
+
+扩展阅读：https://www.cnblogs.com/aheizi/p/7195963.html
+
+
+（单选）有一个模拟赛跑游戏，运动员有跑得快的也有跑的慢的，运动员听到枪声后开始起跑，而最后一个运动员到达终点后，标志的比赛的结束。
+
+当前场景下，适合采用哪种线程同步机制（）
+
+A. CountDownLatch跑步模拟
+
+解析：学习参考：https://blog.51cto.com/14207399/2415502
+
+（单选）20个人去银行存款，但是该银行只有两个办公柜台，有空位则上去存钱，没有空位则只能去排队等待，适合采用哪种线程同步机制（）
+A. Semaphore 信号量
+
+解析：Semaphore: 可以控制同时访问的线程个数，通过 acquire() 获取一个许可，如果没有就等待，用完自动release。
+
+看到两个柜台，可能思路上容易与Exchanger 混淆，但是柜台两个排队线程之间无需交互数据，所以不能选Exchanger.
+
+1.6.2    通用编程规范之编程实践-多线程并发
+规则8.1.1 多线程访问同一个共享的可变变量，需增加同步机制
+
+-java代码
+01
+public class StopThread {
+02
+    private static boolean stopRequested;
+03
+    private static synchronized void requestStop() {
+04
+      stopRequested = true;
+05
+    }
+06
+    private static synchronized boolean isStopRequested() {
+07
+    return stopRequested;
+08
+    }
+09
+    public static void main(String[] args) throws InterruptedException {
+10
+        Thread backgroundThread = new Thread(new Runnable() {
+11
+            public void run() {
+12
+                int count = 0;
+13
+                while (!isStopRequested()) {
+14
+                    count++;
+15
+                }
+16
+            }
+17
+        });
+18
+        backgroundThread.start();
+19
+        TimeUnit.SECONDS.sleep(1);
+20
+        requestStop();
+21
+    }
+22
+}
