@@ -1,0 +1,433 @@
+
+1.8.5	AtomicInteger
+AtomicInteger,AtomicLong,AtomicLongArray,
+AtomicReference等原子类的类，主要用于在高并发环境下的高效程序处理,来帮助我们简化同步处理.
+在Java语言中，++i和i++操作并不是线程安全的，在使用的时候，不可避免的会用到synchronized关键字。而AtomicInteger则通过一种线程安全的加减操作接口。
+1.8.6	线程同步机制
+通信是指线程之间以何种机制来交换信息，主要有两种：共享内存和消息传递。
+
+什么是共享变量？在java程序中所有的实例域、静态域和数组元素都是放在堆内存中（所有线程均可访问到，是可以共享的），而局部变量、方法定义参数和异常处理器参数不会在线程间共享。共享数据会出现线程安全问题，而非共享数据不会出现线程安全问题。
+
+Java内存模型（JMM）
+CPU的处理速度和主存的读写速度不是一个量级的，为了平衡这种巨大的差距，每个CPU都会有缓存。因此，共享变量会先放在主存中，每个线程都有属于自己的工作内存，并且会把位于主存中的共享变量拷贝到自己的工作内存，之后的读写操作均使用位于工作内存的变量副本，并在某个时刻将工作内存的变量副本写回到主存中去。
+	并且JMM决定了一个线程对共享变量的写入何时对其他线程是可见的。
+
+
+在Java多线程编程中，经常会需要我们控制并发流程，等其他线程执行完毕，或者分阶段执行。Java在1.5的juc中引入了CountDownLatch和CyclicBarrier，1.7中又引入了Phaser。
+
+
+Exchanger 可以在两个线程之间交换数据，只能是2个线程，他不支持更多的线程之间互换数据，当线程A调用Exchange对象的exchange()方法后，他会陷入阻塞状态，直到线程B也调用了exchange()方法，然后以线程安全的方式交换数据，之后线程A和B继续运行
+ 
+Semaphore: 可以控同时访问的线程个数，通过 acquire() 获取一个许可，如果没有就等待，而 release() 释放一个许可; 比如多个窗口叫号，窗口都忙时，顾客等待，有空闲时，最新等待的被通知
+
+1.8.7	守护线程
+ 
+
+-线程运行结果与执行顺序无关
+	线程的调度是由CPU决定，CPU执行子任务时间具有不确定性。
+
+
+1.8.8	Java的线程池体系结构
+ 
+在 java.util.concurrent 包中已经提供为大多数使用场景的内置线程池：（Executors工具类提供的static方法）
+
+Executors.newSingleThreadExecutor() # 单条线程
+Executors.newFixedThreadPool(int n) # 固定数目线程的线程池
+Executors.newCachedThreadPool() # 创建一个可缓存的线程池，调用execute 将重用以前构造的线程（如果线程可用）。如果现有线程没有可用的，则创建一个新线程并添加到池中。终止并从缓存中移除那些已有 60 秒钟未被使用的线程。
+Executors.newScheduledThreadPool(int n) # 支持定时及周期性的任务执行的线程池，多数情况下可用来替代 Timer 类。
+1.9	JDBC
+1.9.1	基本的JDBC连接
+https://www.cnblogs.com/progor/p/9096463.html
+JDBC（Java DataBase Connection），即java连接数据库技术。java连接数据库的通用标准，这套标准由一系列的接口(Connection,Statement,ResultSet等)构成，旨在屏蔽不同数据库之间的差异，使得开发者无需关注不同数据库系统之间的差异，简化java连接数据库的步骤。
+	通过驱动包来连接不同的数据库：
+	 
+1）	加载驱动
+ 
+2）	获取连接
+jdbc协议:数据库子协议:主机[:端口][/连接的数据库]  【[]代表可选的】
+例如：jdbc:mysql://localhost:3306/test
+ 
+3）	执行SQL语句
+ 
+	使用Statement执行语句
+对于查询类的sql语句使用：executeQuery(sql)，sql是一个字符串sql语句，返回结果是一个结果集
+	对于更新类(插入、修改、删除、更新)的语句使用：executeUpdate(sql)，sql是一个字符串sql语句，返回结果是一个整数（受影响的行数）
+	使用PreparedStatement执行语句
+PreparedStatement可以使用占位符,它是由占位符标识需要输入数据的位置，然后再逐一填入数据。
+	查询类的sql语句使用：executeQuery(sql)
+	更新类(插入、修改、删除、更新)的语句使用：executeUpdate(sql)
+	使用CallableStatement执行语句
+CallableStatement主要用来调用存储过程
+4）	获取返回
+回结果是一个结果集，它有一个光标指向结果的每一行，最开始它不指向结果，第一次执行next()后，它指向第一行结果，继续执行next()，他会继续指向下一行。next的返回结果是布尔值，它可以用来判断是否有下一行。
+ 
+5）	关闭连接
+后开启的需要先关闭，Statement、Connection、ResultSet都是需要关闭的
+ 
+1.9.2	参数化查询
+使用PreparedStatement来试下参数化查询：（？作为占位符， set方法设置参数）。（仅仅只是用PreparedStatement，但是sql还是自行拼接的话不算是参数化查询，有SQL注入攻击风险）
+ 
+1.9.3	数据库连接池DBCP
+DBCP是apache开源的连接池。
+首先，使用DBCP连接池需要导入包：commons-dbcp.jar和commons-pool.jar
+DBCP根据配置方式，下面给出两种使用方法：
+1.手动配置法：【目前OMP代码中就是用该方式来逐个set的】
+1）创建BasicDataSource对象： BasicDataSource dataSource = new BasicDataSource();
+2)配置BasicDataSource对象：（少用）调用对应函数配置，例如dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+3）得到连接对象：Connection conn = ds.getConnection();
+4）操作数据库。
+
+2.配置文件配置法：（还是推荐这种方式）
+1）创建BasicDataSourceFactory对象：BasicDataSourceFactory factory = new BasicDataSourceFactory();
+2）利用BasicDataSourceFactory对象的createDataSource函数读取配置文件配置DataSource对象：DataSource dataSource = factory.createDataSource(properties);
+3）得到连接对象：Connection conn = ds.getConnection();
+4）操作数据库。
+1.9.4	DbUtils
+•	DbUtils是apache旗下的一个操作数据库的工具
+•	DbUtils可以简化我们对数据库的CRUD操作，一个常用功能是能把查询到的数据自动封装起来，而不再需要我们操作ResultSet。
+1.9.5	FetchSize设置每次缓存读取大小
+（一次性从服务器读取的记录数）
+1）	oracle中默认每次读取10行，JDBC默认每执行一次检索，会从游标中提取10行记录（不设置，结果集比较大的时候性能会很差）
+2）	mysql驱动默认的行为是需要把整个结果全部读取到内存中才开始允许应用读取结果。所以mysql可能会有OOM问题。
+需要在获得检索结果集之前，设置fetch size，否则就是无效。建议执行SQL语句之前设置，即ps.executeQuery();之前使用setFetchSize()函数设置。
+ 
+1.10	Java8
+1.10.1	lamda表达式
+Lambda 是一个匿名函数，我们可以把 Lambda 表达式理解为是一段可以传递的代码（将代码像数据一样进行传递）——有点像函数式参数Runnable的作用。
+Java8中引入了一个新的操作符 "->" 该操作符称为箭头操作符或 Lambda 操作符。
+左侧：Lambda 表达式的参数列表
+右侧：Lambda 表达式中所需执行的功能， 即 Lambda 体
+
+语法格式一：无参数，无返回值
+Runnable runnable = ()->System.out.println("线程启动了"); 
+runnable.run();
+语法格式二：有一个参数，并且无返回值 （此时参数的小括号可以不写）
+(x) -> System.out.println(x)
+语法格式四：有两个以上的参数，有返回值，并且 Lambda 体中有多条语句
+Comparator<Integer> com = (x, y) -> { 
+System.out.println("函数式接口"); 
+return Integer.compare(x, y); 
+};
+语法格式五：若 Lambda 体中只有一条语句， return 和 大括号都可以省略不写
+ 即：Comparator com = (x, y) -> Integer.compare(x, y);
+语法格式六：Lambda 表达式的参数列表的数据类型可以省略不写，因为JVM编译器通过上下文推断出数据类型。
+
+备注：其实lamda表达式一般都是赋给函数式接口来实现代码功能的传递的。关于函数式接口参考1.3.7
+        Collection<BssStatsInfo> infoCollection=bssStatsInfo.values();
+        if(!CollectionUtils.isEmpty(infoCollection)){
+            infoCollection.forEach(i->{
+                if(null!=i){
+                    i.setDate(date);
+                }
+            });
+        }
+
+【lambda表达式对值封闭】
+Java8中的lambda表达式,并不是完全闭包，lambda表达式对值封闭，不对变量封闭。简单点来说就是局部变量在lambda表达式中如果要使用，必须是声明final类型或者是隐式的final例如
+int num = 123; 
+Consumer<Integer> print = (s) -> System.out.println(num);
+就是可以的,虽然num没有被声明为final，但从整体来看，他和final类型的变量的表现是一致的，可如果是这样的代码
+int num = 123; 
+num ++;
+Consumer<Integer> print = (s) -> System.out.println(num);
+则无法通过编译器，这就是对值封闭(也就是栈上的变量封闭)
+如果上文中的num是实例变量或者是静态变量就没有这个限制。
+1.10.2	Stream
+https://blog.csdn.net/y_k_y/article/details/84633001
+Stream 是 Java8 中处理集合的操作，可以执行非常复杂的查找、过滤和映射数据等操作。
+【特点】
+        1 . 不是数据结构，不会保存数据。
+        2. 不会修改原来的数据源，它会将操作后的数据保存到另外一个对象中。（保留意见：毕竟peek方法可以修改流中元素）
+        3. 惰性求值，流在中间处理过程中，只是对操作进行了记录，并不会立即执行，需要等到执行终止操作的时候才会进行实际的计算。
+【分类】
+ 
+   无状态：指元素的处理不受之前元素的影响；
+    有状态：指该操作只有拿到所有元素之后才能继续下去。
+    非短路操作：指必须处理所有元素才能得到最终结果；
+    短路操作：指遇到某些符合条件的元素就可以得到最终结果，如 A || B，只要A为true，则无需判断B的结果。
+
+【流的创建方法】
+1.1 使用Collection下的 stream() 和 parallelStream() 方法
+List<String> list = new ArrayList<>();
+Stream<String> stream = list.stream();
+1.2使用Arrays 中的 stream() 方法，将数组转成流
+1.3 使用Stream中的静态方法：of()、iterate()、generate()
+1.4 使用 BufferedReader.lines() 方法，将每行内容转成流
+1.5 使用 Pattern.splitAsStream() 方法，将字符串分隔成流
+【流的中间操作】
+2.1 筛选与切片
+        filter：过滤流中的某些元素
+        limit(n)：获取n个元素
+        skip(n)：跳过n元素，配合limit(n)可实现分页
+        distinct：通过流中元素的 hashCode() 和 equals() 去除重复元素
+如：
+ 
+映射：
+map：接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素。
+排序：
+sorted()：自然排序，流中元素需实现Comparable接口
+消费：
+peek：如同于map，能得到流中的每一个元素。但map接收的是一个Function表达式，有返回值；而peek接收的是Consumer表达式，没有返回值。
+【流的终止操作】
+3.1 匹配、聚合操作
+        allMatch：接收一个 Predicate 函数，当流中每个元素都符合该断言时才返回true，否则返回false
+        noneMatch：接收一个 Predicate 函数，当流中每个元素都不符合该断言时才返回true，否则返回false
+        anyMatch：接收一个 Predicate 函数，只要流中有一个元素满足该断言则返回true，否则返回false
+        findFirst：返回流中第一个元素
+        findAny：返回流中的任意元素
+        count：返回流中元素的总个数
+        max：返回流中元素最大值
+        min：返回流中元素最小值
+1.10.3	Optional
+Optional 类主要解决的问题是臭名昭著的空指针异常（NullPointerException）
+https://www.cnblogs.com/wenbochang/p/10426171.html
+https://www.cnblogs.com/zhangboyu/p/7580262.html
+Optional其中有三个static方法。并且Optional的构造方法是private。所以Optional对象都是用三个static方法来创建：
+static <T> Optional<T> empty()  返回空的 Optional 实例。
+static <T> Optional<T> of(T value)  返回一个指定非null值的Optional。
+static <T> Optional<T> ofNullable(T value)  如果为非空，返回 Optional 描述的指定值，否则返回空的 Optional。
+
+其他接口：
+boolean isPresent() 如果值存在则方法会返回true，否则返回 false。
+T get()  如果在这个Optional中包含这个值，返回值，否则抛出异常：NoSuchElementException
+T orElse(T other)  如果存在该值，返回值， 否则返回 other。
+
+1）	创建实例——使用of 或ofNullable。
+用of的时候需要自己保证传入的value非空，如果传入为空，就还是会抛出异常NullPointerException，所以用不用区别不大。
+不知道value是不是空时，用ofNullable，这样如果传入为空，返回的是空的Optional对象。
+
+2）	访问Optional对象的值
+T get()  //返回值，如果为空抛出异常：NoSuchElementException
+boolean isPresent()  // 检查值是否存在
+void ifPresent(Consumer<? super T> consumer)  //该方法除了执行检查，还接受一个Consumer(消费者) 参数, 如果值存在则使用该值调用 consumer , 否则不做任何事情。
+
+3）	返回默认值
+orElse()，它的工作方式非常直接，如果有值则返回该值，否则返回传递给它的参数值
+ 
+orElseGet() —— 其行为略有不同。这个方法会在有值的时候返回值，如果没有值，它会执行作为参数传入的 Supplier(供应者) 函数式接口，并将返回其执行结果
+ 
+4）	返回异常
+orElseThrow() API —— 它会在对象为空的时候抛出自己定义的异常
+ 
+5）	值转换
+map() 对值应用(调用)作为参数的函数，然后将返回的值包装在 Optional 中。这就使对返回值进行链试调用的操作成为可能
+	 
+
+【Optional的链式调用】
+1.10.4	MetaSpace
+https://blog.csdn.net/kingmax54212008/article/details/104165185
+持久代PermGen space
+即内存的永久保存区域，说说为什么会内存溢出（java.lang.OutOfMemoryError: PermGen space ）：这一部分用于存放Class和Meta的信息,Class在被 Load的时候被放入PermGen space区域，所以如果你的APP会LOAD很多CLASS的话,就很可能出现PermGen space错误。
+JVM 种类有很多，比如 Oralce-Sun Hotspot, Oralce JRockit, IBM J9, Taobao JVM（淘宝好样的！）。需要注意的是，PermGen space是Oracle-Sun Hotspot才有
+	【持久代中包含了虚拟机中所有可通过反射获取到的数据，比如Class和Method对象。即前面1.6中介绍的Class对象】
+JDK8 HotSpot JVM 将移除上面的永久区，使用本地内存来存储类元数据信息并称之为：元空间（Metaspace，一种新的内存空间的诞生）。（不再有永久区内存不足问题）
+这部分内存空间将全部移除。JVM的参数：PermSize 和 MaxPermSize 会被忽略并给出警告（如果在启用时设置了这两个参数）。
+大部分类元数据都在本地内存中分配。
+	默认情况下，类元数据只受可用的本地内存限制（容量取决于是32位或是64位操作系统的可用虚拟内存大小）。新参数（MaxMetaspaceSize）用于限制本地内存分配给类元数据的大小。
+一些杂项数据已经移到Java堆空间中。升级到JDK8之后，会发现Java堆 空间有所增长。
+1.11	泛型
+	泛型，即“参数化类型”。即将类型作为参数传入（实际的类型实参，？等类型形参）。
+泛型有三种常用的使用方式：泛型类，泛型接口和泛型方法。
+https://www.cnblogs.com/coprince/p/8603492.html
+1.11.1	泛型类、接口、方法
+•	泛型的类型参数只能是类类型，不能是简单类型。
+•	不能对确切的泛型类型使用instanceof操作。如下面的操作是非法的，编译时会出错。
+　　if(ex_num instanceof Generic<Number>){ }
+
+泛型类：
+ 
+
+泛型接口：
+ 
+ 
+ 
+
+泛型方法（根据传入的参数动态判断类型）：
+ 
+
+1.11.2	只在编译期有效
+ 
+	能够打印出日志，说明两个的Class对象时一样的，即都是ArrayList类。
+
+1.11.3	泛型容器之间没有继承关系
+ 
+•	苹果 IS-A 水果
+•	装苹果的盘子 NOT-IS-A 装水果的盘子
+所以，就算容器里装的东西之间有继承关系，但容器之间是没有继承关系的。所以我们不可以把Plate<Apple>的引用传递给Plate<Fruit>。此时就需要泛型通配符
+1.11.4	泛型通配符
+无边界通配符 <？> 标识可以是任意类型
+
+上界通配符  Plate <？ extends Fruit>
+为泛型添加上边界，即传入的类型实参必须是指定类型的子类型
+<? extends Fruit>会使往盘子里放东西的set()方法失效。但取东西get()方法还有效。
+下界通配符  Plate<？ super Fruit>
+为泛型添加下边界，即传入的类型实参必须是指定类型的父类型
+	<? super Fruit>会使从盘子里取东西的get( )方法部分失效，只能存放到Object对象里。set( )方法正常。 
+
+通配符<?>和类型参数<T>的区别就在于：
+1）对编译器来说所有的T都代表同一种类型。比如下面这个泛型方法里，三个T都指代同一个类型，要么都是String，要么都是Integer。
+public <T> List<T> fill(T... t);
+<?>是针对变量的：List<?> alist，标识alist这个变量里元素可以是任意类型。
+
+2） 通配符只能用于填充泛型变量T,不能用于定义变量
+ 
+
+PECS（Producer Extends Consumer Super）原则：
+•	频繁往外读取内容的，适合用上界Extends。
+•	经常往里插入的，适合用下界Super。
+1.12	类初始化过程
+https://www.cnblogs.com/fly-piglet/p/8766226.html
+普通类：（静态变量和静态代码块只和出现顺序有关，普通变量和普通代码块也之和出现顺序有关）
+•	静态变量
+•	静态代码块
+•	普通变量
+•	普通代码块
+•	构造函数
+继承的子类：（静态——父类——子类）
+•	父类静态变量
+•	父类静态代码块
+•	子类静态变量
+•	子类静态代码块
+•	父类普通变量
+•	父类普通代码块
+•	父类构造函数
+•	子类普通变量
+•	子类普通代码块
+•	子类构造函数
+接口：
+•	声明的变量都是静态变量并且是final的，所以子类无法修改，并且是固定值不会因为实例而变化
+•	接口中能有静态方法，不能有普通方法，普通方法需要用defalut添加默认实现
+•	接口中的变量必须实例化
+1.13	GC
+https://blog.csdn.net/laomo_bible/article/details/83112622
+Java垃圾回收机制
+GC的分代收集分为：年轻代、老年代、永久代。（方法区是被当做永久代的，不过JDK1.6后将被取消掉了）
+1.13.1	需要GC的区域
+ java 堆和方法区中
+1.13.2	需要GC的对象
+需要进行回收的对象就是已经没有存活的对象，判断一个对象是否存活常用的有两种办法：引用计数和可达分析。
+可达性分析，通过一系列称为 “GC Roots” 的对象作为起点，从这些节点开始向下搜索，搜索路径称为 “引用链”，可作为GC Roots：
+•	本地变量表（即栈）中引用的对象
+•	方法区中静态变量引用的对象
+•	方法区中常量引用的对象
+•	Native方法引用的对象
+1.13.3	什么时候触发GC
+(1)程序调用System.gc时可以触发
+(2)系统自身来决定GC触发的时机（根据Eden区和From Space区的内存大小来决定。当内存大小不足时，则会启动GC线程并停止应用线程）
+	GC又分为 minor GC 和 Full GC (也称为 Major GC )
+Minor GC触发条件：当Eden区满时，触发Minor GC。
+Full GC触发条件
+a.调用System.gc时，系统建议执行Full GC，但是不必然执行
+  b.老年代空间不足
+  c.方法去空间不足
+  d.通过Minor GC后进入老年代的平均大小大于老年代的可用内存
+  e.由Eden区、From Space区向To Space区复制时，对象大小大于To Space可用内存，则把该对象转存到老年代，且老年代的可用内存小于该对象大小
+1.13.4	GC做了哪些事情
+1.年轻代的GC（存放实例化的对象）
+年轻代分为三个区：Eden和两个存活区（Survivor0和Survivor1），分别占内存的80%、10%、10% 使用“停止-复制（Stop-and-copy）”清理法（将Eden区和一个Survivor中仍然存活的对象拷贝到另一个Survivor中）
+当Eden区满时，就执行一次MinorGC，并将剩余存活的对象都添加到Surivivor0，回收Eden中的没有存活的对象。
+当Surivivor0页都满了的时候，就将仍然存活的存到Surivivor1中，回收Surivivor0中的对象Surivivor0和Surivivor1依次去存，当两个存活区切换了几次后（HotSpot默认是15次），将仍然存活的对象复制到老年代
+2.老年代的GC（存放较大的实例化的对象和在年轻代中存活了足够久的对象）
+老年代GC用的是标记-整理算法，即标记存活的对象，向一端移动，保证内存的完整性，然后将未标记的清掉
+当老年代不够用时，也会执行Major GC，即Full GC
+注意：如果永久代代存放的常量和类过大，无法全部放入永久代，也会触发永久代的GC，将一部分放入老年代
+3.永久代的GC（存放常量、类）
+在JDK1.6版本之后，永久代就要被取消掉了，只留下年轻代和老年代
+
+年轻代的GC是必须的，但是老年代和永久代并不是必须的，可以通过设置参数来决定是否对类进行回收
+1.13.5	System.gc()
+执行System.gc()函数的作用只是提醒或告诉虚拟机，希望进行一次垃圾回收。
+至于什么时候进行回收还是取决于虚拟机，而且也不能保证一定进行回收（如果-XX:+DisableExplicitGC设置成true，则不会进行回收）
+
+java.lang.OutOfMemoryError: java heap space 可能会导致所有用户线程暂停，不可以通过try/catch解决。
+java.lang.StackOverflowError: 线程栈空间不足
+java.lang.OutOfMemoryError: PermGen space 是指方法区（永久代）内存溢出
+1.14	JDK工具
+https://blog.csdn.net/qq_27607965/article/details/79982519
+1.14.1	标准工具
+这些工具都是JDK提供的，通常都是长期支持的工具，JDK承诺这些工具比较好用。
+基础
+jar	创建和管理Jar文件
+java	Java运行工具，用于运行.class字节码文件或.jar文件
+javac	用于Java编程语言的编译器
+javadoc	API文档生成器
+javah	C头文件和stub函数生成器，用于编写native方法
+javap	类文件反汇编器，主要用于根据Java字节码文件反汇编为Java源代码文件
+jdb	Java调试器(Java Debugger)
+
+安全
+keytool	管理密钥库和证书。主要用于获取或缓存Kerberos协议的票据授权票据。允许用户查看本地凭据缓存和密钥表中的条目(用于Kerberos协议)。Kerberos密钥表管理工具，允许用户管理存储于本地密钥表中的主要名称和服务密钥。
+jarsigner	生成并验证JAR签名
+
+故障排查：
+Jcmd 	JVM诊断命令工具，将诊断命令请求发送到正在运行的Java虚拟机。
+jconsole	用于监控Java虚拟机的使用JMX规范的图形工具。它可以监控本地和远程JVM。它还可以监控和管理应用程序。
+1.14.2	实验性工具
+监控：
+jps	JVM进程状态工具(JVM Process Status Tool)，在目标系统上列出HotSpot Java虚拟机进程的描述信息
+jstat	JVM统计监控工具(JVM Statistics Monitoring Tool)，根据参数指定的方式收集和记录指定的jvm进程的性能统计信息。
+
+故障排查：
+jinfo	Java的配置信息工具(Java Configuration Information)，用于打印指定Java进程、核心文件或远程调试服务器的配置信息。
+jhat	Java堆分析工具(Java Heap Analysis Tool)，用于分析Java堆内存中的对象信息。
+jmap	Java内存映射工具(Java Memory Map)，主要用于打印指定Java进程、核心文件或远程调试服务器的共享对象内存映射或堆内存细节。
+jsadebugd	适用于Java的可维护性代理调试守护程序(Java Serviceability Agent Debug Daemon)，主要用于附加到指定的Java进程、核心文件，或充当一个调试服务器。
+jstack	Java的堆栈跟踪工具，主要用于打印指定Java进程、核心文件或远程调试服务器的Java线程的堆栈跟踪信息。
+1.15	正则表达式
+https://blog.csdn.net/mynamepg/article/details/83110538
+1.15.1	Java正则表达式类
+java正则表达式通过java.util.regex包下的Pattern类与Matcher类实现
+Pattern类用于创建一个正则表达式,
+ 
+
+split(CharSequence input)实例方法,用于分隔字符串,并返回一个String[]
+静态方法：
+Pattern.matcher(String regex,CharSequence input)是一个静态方法,用于快速匹配字符串,该方法适合用于只匹配一次,且匹配全部字符串.
+
+Patther的实例方法：
+matcher(CharSequence input)   //返回一个Matcher类对象
+ 
+
+【基本用法】
+ 
+1.15.2	正则表达式语法
+
+代码	说明
+.	匹配除换行符以外的任意字符
+\w	匹配字母或数字或下划线或汉字
+\s	匹配任意的空白符
+\d	匹配数字
+^	匹配字符串的开始
+$	匹配字符串的结束
+\b	匹配字符串的结束
+
+代码/语法	说明
+*	重复零次或更多次
++	重复一次或更多次
+?	重复零次或一次
+{n}	重复n次
+{n,}	重复n次或更多次
+{n,m}	重复n到m次
+
+中括号”[]“：只有方括号里面指定的字符才参与匹配，也只能匹配单个字符。
+”|“ 符号。相当与“或”，可以匹配指定的字符，但是也只能选择其中一项进行匹配。
+
+分组：
+重复单个字符直接在字符后面加上限定符就行了，但如果想要重复多个字符又该怎么办？你可以用小括号来指定子表达式(也叫做分组)，
+
+重复的语法默认采用贪婪匹配（即匹配尽可能多的字符）：
+a.*b  匹配整个 aabab
+【在上面的重复语法后加上？就是懒惰匹配，匹配尽可能少的字符】
+语法	说明
+*?	重复任意次，但尽可能少重复
++?	重复1次或更多次，但尽可能少重复
+??	重复0次或1次，但尽可能少重复
+{n,m}?	重复n到m次，但尽可能少重复
+{n,}?	重复n次以上，但尽可能少重复
+
+1.16	网络socket
+Socket哪些操作可能会进入阻塞状态：
+1、  serversocket的accpet()监听客户端连接
+2、  执行socket的输出流写数据
+3、  执行socket的输入流读取数据
+4、  Socket的getOutputStream(), getInputStream()
