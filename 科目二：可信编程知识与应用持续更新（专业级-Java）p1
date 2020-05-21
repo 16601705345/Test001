@@ -1038,3 +1038,173 @@ public class StopThread {
     }
 22
 }
+
+题目：如下哪个代码片段使用synchronized是正确的？
+
+-java代码
+01
+public class DemoTest {
+02
+   private Integer integer = 1;
+03
+   private String str1 = 1;
+04
+   private String str2 = new String("1");
+05
+   private Boolean bool = Boolean.FALSE;
+06
+   public void sync1() {
+07
+       synchronized (integer) {
+08
+           // do sth
+09
+      }
+10
+  }
+11
+   public void sync2() {
+12
+       synchronized (str1) {
+13
+           // do sth
+14
+      }
+15
+  }
+16
+   public void sync3() { // 这个是正确用法
+17
+       synchronized (str2) {
+18
+           // do sth
+19
+      }
+20
+  }
+21
+    
+22
+   public void sync4() {
+23
+       synchronized (bool) {
+24
+           // do sth
+25
+      }
+26
+  }
+27
+}
+
+答案：syn3()
+解析：
+在Java中，会对基本数据的装箱类型进行缓存，Integer的默认缓存范围是 -128~127。
+直接使用String str1 = "hello"声明字符串，会从常量池获取实例。
+锁的使用要遵循最小化原则，尽可能使用对象锁。参见《华为Java语言通用编程规范》8.1章节-多线程并发、《java并发编程实战》
+
+建议8.1.3 Java 8使用CompletableFuture编写异步任务
+说明：CompletableFuture类的一系列aync结尾的方法，可以启动一个异步任务，既可以在默
+认的线程池运行，也可以指定线程池。CompletableFuture类也包含了对CompletableFuture
+的各种组合（then开头的方法）、结果获取的方法。 例如，异步地通过网址获取链接集，然后
+再异步地下载链接集的文本内容
+-java代码
+1
+CompletableFuture.supplyAsync(() -> readPage("http://whatever.com/"))
+2
+    .thenApply(page -> linkParser.getLinks(page))
+3
+    .thenAcceptAsync(links -> displayPanel.setText(links.getText()), executor);
+
+1.6.3   线程thread.interrupt()
+
+
+通过interrupt()和.interrupted()方法两者的配合可以实现正常去停止一个线程。
+Thread.interrupt的作用其实不是中断线程，而是通知线程应该中断了。
+如果一个线程处于了阻塞状态，则线程在检查中断标示时如果发现中断标示为true，则会在阻塞方法调用处抛出InterruptedException异常。
+
+线程进入阻塞状态的场景：如线程调用了thread.sleep、thread.join、thread.wait、1.5中的condition.await、以及可中断的通道上的 I/O 操作方法后可进入阻塞状态。
+
+考察点：https://www.nowcoder.com/questionTerminal/47703e6586e24a5db27cfd69a72c1433 
+
+（单选）下列哪种情况可以终止当前线程的运行？
+A. 当一个优先级高的线程进入就绪状态时
+B. 当该线程调用sleep()方法时
+C. 当创建一个新线程时
+D. 抛出一个异常时
+
+答案：D
+
+解析：抛出异常会终止当前线程的运行。
+
+A选项：当一个优先级高的线程进入就绪状态时 （并不会立即执行，等待时间片轮到的时候才会执行）
+B选项：当该线程调用sleep()方法时 （阻塞当前线程，直到阻塞时间达到，重新进入就绪队列）
+C选项：当创建一个新线程时 （同A选项一样，进入就绪队列，等待时v间片轮到）
+
+
+
+要想答对这道题，要区分“终止” 和 “阻塞”：
+终止：这个线程不会再次进入“就绪态”。宣告死亡，即“死亡状态”。终止线程，有三种方法：调用stop，interrupt或在run()中正常终止。
+
+           当catch块捕捉到一个异常时，程序将会被终止，与此同时，线程也被终止，属于被interrupt的一种。
+阻塞：进入阻塞态的线程还可以再进入“就绪态”，等待下一次 CPU 时间。
+
+
+线程的 5 个状态的理解：
+1. 新建，刚刚新建的线程，还未进入就绪队列
+2. 就绪，进入就绪队列的线程拥有了获得 CPU 时间的机会，但不是一定会马上执行，与线程调度有关。
+3. 运行，获得了 CPU 时间，正在被执行的线程。
+4. 阻塞，进入阻塞状态的线程只是暂时失去了 CPU 时间，该类线程没有结束，“阻塞态”的线程只能进入到“就绪态”。
+5. 死亡，死亡的线程即彻底结束了。
+
+1.6.4 volatile - 易挥发的
+对volatile修饰的变量的修改，其它线程立即可见。
+
+不能替代synchronized关键字
+
+常用在一写多读场景
+
+ 
+
+扩展阅读：https://www.cnblogs.com/dolphin0520/p/3920373.html
+
+1.6.5 Thread.sleep/Object.wait区别
+sleep（）方法
+
+　　sleep()使当前线程进入停滞状态（阻塞当前线程），让出CUP的使用、目的是不让当前线程独自霸占该进程所获的CPU资源，以留一定时间给其他线程执行的机会;
+
+　　 sleep()是Thread类的Static(静态)的方法；因此他不能改变对象的机锁，所以当在一个Synchronized块中调用Sleep()方法是，线程虽然休眠了，但是对象的机锁并木有被释放，其他线程无法访问这个对象（即使睡着也持有对象锁）。
+
+　　在sleep()休眠时间期满后，该线程不一定会立即执行，这是因为其它线程可能正在运行而且没有被调度为放弃执行，除非此线程具有更高的优先级。
+
+　　
+
+wait（）方法
+
+　　wait()方法是Object类里的方法；当一个线程执行到wait()方法时，它就进入到一个和该对象相关的等待池中，同时失去（释放）了对象的机锁（暂时失去机锁，wait(long timeout)超时时间到后还需要返还对象锁）；其他线程可以访问；
+
+　　wait()使用notify或者notifyAlll或者指定睡眠时间来唤醒当前等待池中的线程。
+
+　　wait()必须放在synchronized block中，否则会在program runtime时扔出”java.lang.IllegalMonitorStateException“异常。
+
+ 
+
+   所以sleep()和wait()方法的最大区别是：
+
+　　　　sleep()睡眠时，保持对象锁，仍然占有该锁；
+
+　　　　而wait()睡眠时，释放对象锁。
+
+　　但是wait()和sleep()都可以通过interrupt()方法打断线程的暂停状态，从而使线程立刻抛出InterruptedException（但不建议使用该方法）。
+
+1.6.6 Volatile和AtomicInteger，AtomicIntegerArray线程安全操作
+
+
+setA
+
+readA
+
+setB
+
+readB
+
