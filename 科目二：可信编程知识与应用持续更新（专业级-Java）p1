@@ -1,0 +1,630 @@
+科目二：可信编程知识与应用（专业级-Java）
+
+（如果理解有误或者有不对的地方请留言）
+
+站在巨人的肩上，继续盖楼，本团队fork后持续更新
+转自：http://3ms.huawei.com/km/blogs/details/7763375
+其他帮助：
+科目一考试空项目（考前下载）：http://isource.huawei.com/Security_AM/pioneer-exam/tree/master
+科目一通过者刷题范围参考：http://3ms.huawei.com/hi/group/3620079/wiki_5861190.html
+科目三考试：科目三大家w3自己看，C语言和Java语言相关内容混合一起看，取长补短
+科目四考试练习题：http://3ms.huawei.com/hi/group/3620079/wiki_5840636.html?for_statistic_from=all_group_wiki
+ 
+  [ 回目录 ]0 Java虚拟机   
+  [ 回目录 ]0.1 运行时帧栈结构   
+栈帧的概念
+栈帧(Stack Frame)是用于支持虚拟机进行方法调用和方法执行的数据结构。栈帧存储了方法的局部变量表、操作数栈、动态连接和方法返回地址等信息。每一个方法从调用至执行完成的过程，都对应着一个栈帧在虚拟机栈里从入栈到出栈的过程。
+一个线程中方法的调用链可能会很长，很多方法都同时处于执行状态。对于JVM执行引擎来说，在在活动线程中，只有位于JVM虚拟机栈栈顶的元素才是有效的，即称为当前栈帧，与这个栈帧相关连的方法称为当前方法，定义这个方法的类叫做当前类。
+参考：https://zhuanlan.zhihu.com/p/45354152
+考察：
+栈帧的大小在什么时候确定的？
+A. 程序代码编译时
+B. 类加载时
+C. 运行调用时
+答案：A，程序代码编译时确定。
+
+gc主要的回收的内存区域是哪块(AB)
+A. 堆区
+B. 方法区
+
+GCRoot对象包括哪些对象？
+
+
+
+  [ 回目录 ]1 编程语言与应用   
+  [ 回目录 ]1.1 原始数据类型与字长   
+1.1.0 基础类型考察死角
+1.1.0.1 for语句形成的死循环
+下面这个例子，算法极容易认为是50，实际上是无穷大的一个死循环
+-java代码
+01
+public class CycTest {
+02
+  public static void main(String[] args) {
+03
+    int end = Integer.MAX_VALUE; //定义个循环终止数，可以无限大,区别于int型。
+04
+    int start = end-50;     //定义起始值
+05
+    int count = 0;        //初始值
+06
+    for(int i=start;i<=end;i++){ //循环体
+07
+       count++;         //循环计数
+08
+       System.out.println("本次循环次数为:"+count); //输出
+09
+    }
+10
+  } 
+11
+}
+
+输出结果:
+run:
+本次循环次数为:1
+本次循环次数为:2
+本次循环次数为:3
+......
+本次循环次数为:49
+本次循环次数为:50
+本次循环次数为:51
+......
+for(int i=start,i<end;i++)，结果就是50了。（i<end），表示边界值不能是一个无穷大数值， 而从start到end也就变成了一段区间了，区间就是50。如果是(i<=end)则end就变成了一个无穷大，不管i怎么加，总是无法大过无穷大，造成死循环。
+参考：https://www.jb51.net/article/67817.htm
+场景二、for循环陷入无限循环
+-java代码
+1
+public static void main(String[] args) {
+2
+    for (byte i = -128; i < 128; i++) {
+3
+        System.out.println("Hello " + i);
+4
+    }
+5
+}
+
+byte类型的取值范围[-128,127]，128相当于byte类型的无穷大，永远无法达到。127再相加，就变成了-128溢出从最小位数再开始计算。
+Hello 125
+Hello 126
+Hello 127
+Hello -128
+Hello -127
+Hello -126
+场景三、采用double做for循环变量死循环
+规则4.1 不能用浮点数作为循环变量
+死循环示例：
+for(double x = 0; x !=10; x += 0.1){
+  System.out.println("hello");
+}
+场景四、采用浮点数for循环变量造成死循环
+下面代码的输出
+for(float f =100000000;f<100000010;f++){
+  System.out.println(f);
+}
+A. 不确定
+B. 100000000 100000001 100000002 ... 100000010
+C. 100000000
+D. 死循环
+答案：D
+
+1.1.0.2 for循环删除集合陷阱
+采用foreach边读边删除，语句是否运行正确？
+-java代码
+01
+public class DeleteCollection {
+02
+    public static void main(String[] args) {
+03
+        List<String> list = new LinkedList<String>();
+04
+        list.add("a");
+05
+        list.add("b");
+06
+        list.add("c");
+07
+        list.add("d");
+08
+        list.add("e");
+09
+        for (String str : list) {
+10
+            //循环删除集合中的元素
+11
+            if (str.equals("c"))
+12
+                list.remove(str);
+13
+        }
+14
+        System.out.println("还剩余的元素个数：" + list.size());
+15
+    }
+16
+}
+
+考察点：执行后抛出ConcurrentModificationException异常还是IllegalStateException?P
+实际抛出：ConcurrentModificationException
+Exception in thread "main" java.util.ConcurrentModificationException
+at java.base/java.util.LinkedList$ListItr.checkForComodification(LinkedList.java:970)
+at java.base/java.util.LinkedList$ListItr.next(LinkedList.java:892)
+考试陷阱：
+（1）如果List<String> list = new ArrayList<>();那么倒数第2个不会抛出异常，其他都抛出异常。
+
+（2）如果是LinkedList，那么倒数两个不会抛出异常，其他都抛出异常。
+
+1.1.0.3 数组类型的声明方式考察
+如下四种数组声明方式，哪种不正确？
+int[] hello1 = {1,2,3,4};
+int[] hello2 = new int[4] {1,2,3,4};
+int[] hello3 = new int[] {1,2,3,4};
+int[] hello4 = new int[4];
+答案：int[] hello2 = new int[4] {1,2,3,4};不正确。
+Java语言中，下面哪个语句是创建数组的正确语句？( DE )
+A、float f[][] = new float[6][6];
+B、float []f[] = new float[6][6];
+C、float f[][] = new float[][6];
+D、float [][]f = new float[6][6];
+E、float [][]f = new float[6][];
+解析：不考虑C语言风格，AB也正确
+//C语言风格，错误
+float f1[][] = new float[6][6];
+//虽然古怪，但是不报错，正确
+float[] f2[] = new float[6][6];
+//C语言风格，并且指定了列号，没有指定行号，错误
+float f3[][] = new float[][6];
+//标准声明方法，正确
+float[][] f4 = new float[6][6];
+//只指定行号，列不确定方法，正确
+float[][] f5 = new float[6][];
+
+1.1.0.4 哪些数据类型能直接输出？
+a. int[] test = {1,2,3,4,5}
+b. List<String> list = new LinkedList<>();
+c. Map<Integer,Integer> map = new HashMap<>();
+d. List<Integer> list  = new ArrayList<>();
+答案：a是无法直接输出的
+System.out.println(Arrays.toString(test))才可以输出;
+
+1.1.0.4 与表达式 Integer a = 2;等价的类型是哪个？
+A. int b = Integer.parseInt("2");
+B. Integer b = Integer.valueOf("2");
+答案：B
+示例代码：
+ public static void main(String[] args) {
+   Integer a = 2;
+   Integer b = Integer.valueOf("2");
+   System.out.println(a == b);
+}
+
+1.1.0.6 通过字节码理解函数执行结果
+(1)%JAVA_HOME%/bin/javap -verbose XXX.class
+(2)javap -v .\DemoTest > test.txt
+查看字节码：【大家自己做个抛出异常的类理解一下，考题】
+Classfile /E:/java_project/execlTest/bin/test/StringBuilderTest.class
+Last modified 2018-5-17; size 937 bytes
+MD5 checksum 9477783775fde82741d8c8d78a153df4
+Compiled from "StringBuilderTest.java"
+public class test.StringBuilderTest
+minor version: 0
+major version: 52
+flags: ACC_PUBLIC, ACC_SUPER
+判断功能控制台输出什么？
+1.1.0.7 编译告警
+哪些语句在编译时不会出现编译警告（D）
+A) float f = 1.3; B) byte b=257;
+C) boolean b = null; D) int i = 10;
+
+1.1.1        浮点数比较相等方法
+浮点数比较相等的方法是绝对值得差值要小于1E-6F
+
+public static void main(String[] args) {
+  float a = 0.1f;
+  float b = 0.11f;
+  if (Math.abs(a-b) < 1E-6F) {
+    System.out.println(true);
+  }
+}
+
+1.1.2 double数据类型
+0.12345默认类型为double
+
+double var1 = 0.12345;
+
+如果需要表示浮点类型需要再末尾添加f：
+
+0.12345f   float
+
+float var1 = 0.12345f;
+
+1.1.2.1        double/整数类型依旧是double
+double var1 = 0.12345;
+
+var1/2 为dobule类型
+
+
+
+精度最高的数据类型？
+A. int
+B. long
+C.BigInteger
+D.byte
+答案：C 
+
+和long型整数运算比，BigInteger不会有范围限制，但缺点是速度比较慢。
+
+
+1.1.3        不可变类型
+immutable Objects就是那些一旦被创建，它们的状态就不能被改变的Objects，每次对他们的改变都是产生了新的immutable的对象。
+
+也就是当该数据类型的对应变量的值发生了改变，那么它对应的内存地址也会发生改变。JDK本身自带了一些immutable类，比如String，Integer以及其他包装类。比如：java.lang.String 的trim，uppercase,substring等方法，它们返回的都是新的String对象，而并不是直接修改原来的对象。
+
+
+
+重点记忆： 
+
+Integer variable = [-128,127] -该范围内的等号重新赋值（不是 new分配的），不会产生新的不可变对象，都是相等的。
+
+String variable =  new String("hello").intern();  -调用了intern永远指向常量池中的"hello"对象，地址是不变的，没有产生新的对象。
+
+
+
+其他总结：
+
+
+常见的8种基本数据类型的包装类型，String, Integer, Short, Long, Byte, Character, Double, Boolean
+
+讨论：https://stackoverflow.com/questions/18037082/are-java-primitives-immutable
+
+题目：
+（1）String str = "a" + "b" + "c" + "d";创建了几个对象？
+   A. 4个
+  B. 1个
+  C. 2个
+  D.3个
+答案：1个
+
+
+（2）整数比较
+
+int a = 1000;
+
+int b = 1000;
+System.out.println(a == b); // true
+
+Integer c = 1000;
+
+Integer d = 1000;
+System.out.println(c == d); // false，必须用equals进行对象比较
+
+Integer e = 100;
+
+Integer f = 100;
+System.out.println(e == f); // true， [-128,127]之间是不可变对象，如果是new的也是不相等的，只有在常量赋值时才存在相等可能。
+
+Integer var1 = Integer.valueOf(100);
+Integer var2 = 100;
+System.out.println(var1 == var2); //true ，常量赋值底层调用的是valueOf，所以是一样的
+
+Integer var1 = Integer.valueOf(200);
+Integer var2 = 200;
+System.out.println(var1 == var2);  //false
+
+
+
+（3）字符串比较：
+
+String s = "123456";
+
+String s1 = "123456";
+
+String s2  = "123" + "456";
+
+String s3 = "456";
+
+String s4 = "123" + s3
+
+System.out.println(s == s1); //true
+
+System.out.println(s==s2); // true
+
+System.out.println(s = s4); //false
+
+（4）下列代码示例中，加锁范围可能为全局而非当前类示例内的有（）？ 
+
+A. private final String lock = new String("LOCK").intern();
+
+
+B. private final String lock = "lock"
+
+C. private final String lock = new String("LOCK");
+
+D. private final Boolean = Boolean.TRUE;
+
+public void doSomthing() {
+
+   synchronized(lock) {
+
+   }
+
+}
+
+答案：ABD
+
+
+
+1.1.4        可变参数
+可变参数最后还是被编译器处理成了数组，
+
+可变参数可以接受长度为0/1…或者多个元素的数组
+
+特点：
+
+  1、只能出现在参数列表的最后；
+
+  2、... 位于变量类型和变量名之间，前后有无空格都可以;
+
+  3、调用可变参数的方法时，编译器为该可变参数隐含创建一个数组，在方法体中以数组的形式访问可变参数。
+
+  4、如果一个是两个方法是重载，一个是可变参数，一个是固定参数，然后我们调用方法如果固定长度的能满足，那么有优先调用固定的长度的，
+
+ 
+
+扩展阅读：https://www.jianshu.com/p/decbcd099354
+
+ 
+
+1.1.4 遮蔽/遮掩问题
+遮蔽（Shadow）
+
+（1）方法的局部变量遮蔽了类的静态变量
+class WhoKnows { 
+
+     static String sentence = "I don't know."; 
+
+     public static void main(String[] args) { 
+
+         String sentence = "I know!"; // 遮蔽了类的静态成员sentence 
+
+        System.out.println(sentence); // 打印的是I know！ 
+
+   }
+
+ } 
+
+
+
+遮掩（Obscure）
+public class Obscure { 
+
+   static String System; // Obscures type java.lang.System 
+
+   public static void main(String[] args) {
+
+      // Next line won't compile: 
+
+      System refers to static field System.out.println("hello, obscure world!"); 
+
+   }
+
+ }
+
+
+
+
+  [ 回目录 ]1.2 流程控制语句   
+1.2.1  break LABEL用法
+
+
+ 
+
+扩展阅读：continue label是一样的
+
+ 
+
+1.2.2  try catch finally中的return
+-java代码
+01
+public static void main(String[] args) throws Exception {
+02
+    System.out.println(func(2));
+03
+}
+04
+ 
+05
+private static int func(int n) {
+06
+    int[] numbers = {1, 2, 3, 4};
+07
+    try {
+08
+        int ret = numbers[n] * 2;
+09
+        return ret;
+10
+    } finally {
+11
+        if (n == 2) {
+12
+            return 0;
+13
+        }
+14
+    }
+15
+}
+
+
+finally块中的内容会先于try中的return语句执行，如果finall语句块中也有return语句的话，那么直接从finally中返回了，这也是不建议在finally中return的原因。
+
+ 
+
+扩展阅读：
+
+  try语句在返回前，将其他所有的操作执行完，保留好要返回的值，而后转入执行finally中的语句，而后分为以下三种情况：
+
+    情况一：如果finally中有return语句，则会将try中的return语句”覆盖“掉，直接执行finally中的return语句，得到返回值，这样便无法得到try之前保留好的返回值。
+
+    情况二：如果finally中没有return语句，也没有改变要返回值，则执行完finally中的语句后，会接着执行try中的return语句，返回之前保留的值。
+
+    情况三：如果finally中没有return语句，但是改变了要返回的值，分以下两种情况，：
+
+        1）如果return的数据是基本数据类型或文本字符串，则在finally中对该基本数据的改变不起作用，try中的return语句依然会返回进入finally块之前保留的值。
+
+        2）如果return的数据是引用数据类型，而在finally中对该引用数据类型的属性值的改变起作用，try中的return语句返回的就是在finally中改变后的该属性的值。
+
+情况三举例：
+
+-java代码
+01
+static class Test {
+02
+    int val;
+03
+}
+04
+public static Test test() {
+05
+    Test t = new Test();
+06
+    try {
+07
+        t.val = 20;
+08
+        return t;
+09
+    } finally {
+10
+        t.val = 30;
+11
+    }
+12
+}
+13
+public static void main(String[] args) {
+14
+    System.out.println(test().val);
+15
+}
+
+-java代码
+01
+public int test() {
+02
+   try {
+03
+       // do somthing and throw exception
+04
+       throw new BusinessException("Failed to excute.");
+05
+  } catch (Exception e) {
+06
+       // do something
+07
+       return  0;
+08
+  } finally {
+09
+       return 1;
+10
+  }
+11
+}
+12
+public static void main(String[] args) {
+13
+   System.out.println(test());
+14
+}
+
+ A 编译错误
+B 输出 "1"
+C 输出 "0"
+答案：B
+
+1.2.3  switch语句支持的类型
+char,  byte,   short,   int
+
+Character,  Byte,  Short,  Integer
+
+enum
+
+String
+
+ 
+
+没有boolean，long
+
+ 
+
+1.2.3        switch语句break缺失后执行
+题目一、变态玩法default前置输出什么？
+-java代码
+01
+public static void main(String[] args) throws IOException {
+02
+    int x = 2;
+03
+    switch (x) {
+04
+        default:
+05
+            x++;
+06
+            System.out.println("default");
+07
+        case 3:
+08
+            x++;
+09
+            System.out.println(x);
+10
+            break;
+11
+        case 4:
+12
+            x++;
+13
+            System.out.println(x);
+14
+            break;
+15
+    }
+16
+    System.out.println(x);
+17
+}
+
+输出：default执行完成后，case3会继续执行。
+default
+4
+4
+（单选）下面语句运行结果为（A）
+
+switch (5) {
+
+default:
+
+System.out.println(5);
+
+case 0:
+
+System.out.println(0);
+
+case 1:
+
+System.out.println(1);
+
+break;
+
+case 2:
+
+System.out.println(2);
+
+break;
+
+}
+
