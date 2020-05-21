@@ -1,0 +1,905 @@
+题目:
+
+新增一个AtomicIntegerArray的getAndAdd()方法的考察
+
+（1）getAndAdd()方法返回索引所在未知的数值，并把该位置的值增加一个Delta数值回填到索引位置
+
+（2）所以value的值是默认的2，而变更后的数值是2+5=7
+
+-java代码
+01
+public class Test {
+02
+    private static int[] arr = new int[]{1, 2, 3};
+03
+    private static AtomicIntegerArray integerArray = new AtomicIntegerArray(arr);
+04
+ 
+05
+    public static void main(String[] args) {
+06
+        int value = integerArray.getAndAdd(1, 5);
+07
+        System.out.println(integerArray.get(1));
+08
+        System.out.println(value);
+09
+    }
+10
+}
+
+  [ 回目录 ]1.7      文件/流体系结构/NIO   
+1.7.0        File的基本操作
+(1)如何判断一个文件是否存在？
+-java代码
+1
+public static void main(String[] args) {
+2
+       Path path = Paths.get("/opt/test/hello.txt");
+3
+       if (Files.exists(path)) {
+4
+          // do something
+5
+       }
+6
+   }
+
+考察方式：
+  Files.isExists(path)
+  Files.exists(path)
+1.7.1        File与文件句柄关系-File本身不会造成文件被占用
+File只是抽象的代表了磁盘上的某个文件或目录，内部实际上是依赖一个平台无关的本地文件系统类，并且 File 无法对其所表示文件内容进行任何读写操作（那是流做的事情）。所以 new File("/path/xx.txt")是不会造成文件被占用的。
+
+1.7.2    try with resource最优方式关闭资源
+
+
+ 
+
+1.7.3    哪个类写操作是线程安全的？
+FileWriter
+
+RandomAccessFile
+
+FileOutputStream
+
+FileChannel
+
+ 
+
+1.7.4    Java nio
+1.7.4.1 Java IO中的缓冲区
+
+缓冲区的四个属性（capacity、limit、position、mark）
+
+容量（capacity）
+capacity指的是缓冲区能够容纳元素的最大数量，这个值在缓冲区创建时被设定，而且不能够改变，如下，我们创建了一个最大容量为10的字节缓冲区；
+
+ByteBuffer bf = ByteBuffer.allocate(10);
+上界（limit）
+limit指的是缓冲区中第一个不能读写的元素的数组下标索引，也可以认为是缓冲区中实际元素的数量；
+
+位置（position）
+position指的是下一个要被读写的元素的数组下标索引，该值会随get()和put()的调用自动更新；
+
+标记（mark）
+一个备忘位置，调用mark()方法的话，mark值将存储当前position的值，等下次调用reset()方法时，会设定position的值为之前的标记值；
+
+四个属性值之间的关系
+根据以上四个属性的定义，我们可以总结出它们之间的关系如下：
+0 <= mark <= position <= limit <= capacity
+参考学习：https://www.cnblogs.com/chenpi/p/6475510.html
+
+Nio中ServerSocketChannel监听tcp连接、每个新连接都会创建一个
+
+Nio是非阻塞的，没有数据可以用不会阻塞线程
+
+ 
+
+扩展阅读：
+
+java nio系统教程：http://ifeve.com/overview/
+
+ 
+
+以下NIO语句是否有错误？
+A.大二进制文件读入
+B. 小二进制文件读入
+C. 小文本按行读入
+D. 小文本按字节数读入
+E. 结尾插入数据采用.APPEND而不是 .CREATE
+答案：E
+
+  [ 回目录 ]1.8 正则表达式   
+（单选）正则表达式 /a+(bab)?(caac)*/ ，下列选项中是该正则表达式的子集是（）？
+
+A. /(bab)(caca)/
+B. /a(bab){2}(caac)*/
+C. /a{2}/
+D. /a+(bab){0,1}(ca)+(ca)/
+E. /a(^bab)+(caac){1,}/
+F. /a+(babc){2,}(acc){1,}/
+答案：C
+解析：
+第一步：理解题目。
+题目中的 a+ 代表 字符“a” 出现1次或者若干次，(bab)? 代表 字符 “bab” 出现一次或者0次，(caac)* 表示重复了“0或者若干次”的字符“caac”，即 字符“caac”出现0次或者若干次 。
+若改题目为/李+太?白*/,可匹配：李、李太、李白、李太白、李李、李李太、李李白白、李李太白白等。
+第二步：理解选项，选出子集。
+A /(bab)(caca)/ ：匹配含有 “babcaca” 的字符串，不是题目中的 “babcaac”, 就好比是在找 “太星” 而不是"太白"，而且没有a，所以该正则匹配的结果不可能出现在题目匹配的结果中，错误。
+B /a(bab){2}(caac)*/ ：其中(bab){2} 表示 字符串“bab”必须出现2次，与题干正则显然不同，错误。
+C /a{2}/ ：其中(a){2} 表示 字符“a”必须出现2次，就好比 “李李” ，属于题目匹配结果的子集，正确。
+D /a+(bab){0,1}(ca)+(ca)/ ：前半部分正确，后半部分(ca)+(ca)明显错误。
+E /a(^bab)+(caac){1,}/：正则本身有误，(^bab)匹配以"bab"开头的字符串，但前面还有a,也就是匹配以a开头的字符串，两者矛盾。
+F /a+(babc){2,}(acc){1,}/：分组和区间值都不正确。
+
+题目来源：https://www.nowcoder.com/questionTerminal/ffd355638ee34d06ba9add0f4c21294e
+
+（单选）如下正则表达式输出什么？
+
+private static final Pattern PATTERN = Pattern.compile("^a-zA-Z0-9_.-]+ @ ([a-zA-Z0-9]+_)+com$");
+public static void main(String[] args) {
+System.out.println(PATTERN.matcher("ab_c@x.y.com").find());
+System.out.println(PATTERN.matcher("abc@x.y+com").find());
+}
+答案：
+false
+false
+
+（单选）正则表达式，[^a-zA-Z0-9_]等价于（）
+
+
+        A. \W B. \w C. \t D.\v
+答案：A
+解析：
+
+\v	匹配一个垂直制表符。等价于 \x0b 和 \cK。
+\w	匹配包括下划线的任何单词字符。等价于'[A-Za-z0-9_]'。
+\W	匹配任何非单词字符。等价于 '[^A-Za-z0-9_]'。（2）非0整数的正则表达式
+A. ^[1-9][0-9]*$
+B. (0|[1-9][0-9]*)$
+C. /^[1-9]\d*$/
+答案：A和C都对，因为^决定了要以[1-9]中任意一个数字开头
+解析：
+
+\d	匹配一个数字字符。等价于 [0-9]。
+\D	匹配一个非数字字符。等价于 [^0-9]。（单选）正则表达式 A*B能匹配哪些字符串（）？
+A.  AB
+B. ACDBEF
+C. ABC
+
+  [ 回目录 ]1.9      反射体系结构   
+1.9.1        Field.get()
+ 
+
+ 
+
+考题里面选择“正常运行、无任何输出”
+
+原因：只能获取到public的，package都不行，public static的可以
+
+
+
+ 
+
+Class类各个方法javadoc要都读一下
+
+获得类中属性相关的方法
+
+方法       用途
+
+getField(String name)    获得某个public的属性对象
+
+getFields()      获得所有public的属性对象
+
+getDeclaredField(String name)     获得某个属性对象
+
+getDeclaredFields() 获得所有属性对象
+
+
+
+ 注意Method执行返回的是Object对象，而不是int或者Integer等执行结果：
+-java代码
+01
+public class Demo {
+02
+    public int test(int a, Integer b) {
+03
+        return a + b;
+04
+    }
+05
+ 
+06
+    public static void main(String[] args) {
+07
+        try {
+08
+            Demo demo = Demo.class.newInstance();
+09
+            Method testMethod = Demo.class.getMethod("test", new Class[] {int.class, Integer.class});
+10
+            Object invoke1 = testMethod.invoke(demo, new Object[] {1, Integer.valueOf(2)});
+11
+            System.out.printf("%d", invoke1);
+12
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException
+13
+            | InvocationTargetException e) {
+14
+            e.printStackTrace();
+15
+        }
+16
+    }
+17
+}
+
+
+
+  [ 回目录 ]1.10   ClassLoader层次结构设计/类初始化过程   
+1.10.1    子类覆盖父类
+
+
+属性没有多态的概念，在 Java 中只有普通实例方法才可以实现多态
+
+子类中看到的是子类的变量，父类中看到的是父类中的变量
+
+方法中使用成员变量时，究竟使用的是父类还是子类的成员变量，则由方法所在的类决定
+
+1.10.2    类初始化顺序
+父类静态，子类静态，父类代码块、父类构造，子类代码块，子类构造
+
+-java代码
+01
+class Parent {
+02
+    private static String hello = "hello";
+03
+    public String world = "world";
+04
+ 
+05
+    { //构造代码块
+06
+        System.out.println("Parent的代码块");
+07
+    }
+08
+ 
+09
+    public Parent() {
+10
+        System.out.println("Parent的构造方法");
+11
+    }
+12
+ 
+13
+    static {//静态代码块
+14
+        System.out.println("Parent的静态代码块");
+15
+    }
+16
+}
+17
+ 
+18
+class Son extends Parent {
+19
+    private static String hello = "hello";
+20
+    public String world = "world";
+21
+ 
+22
+    { //构造代码块
+23
+        System.out.println("Son的代码块");
+24
+    }
+25
+ 
+26
+    public Son() {
+27
+        super();
+28
+        System.out.println("Son的构造方法");
+29
+    }
+30
+ 
+31
+    static {//静态代码块
+32
+        System.out.println("Son的静态代码块");
+33
+    }
+34
+ 
+35
+    public void print() {
+36
+        System.out.println("hello world");
+37
+    }
+38
+}
+
+ 开始执行
+Parent的静态代码块
+Son的静态代码块
+Parent的代码块
+Parent的构造方法
+Son的代码块
+Son的构造方法
+hello world
+
+  [ 回目录 ]1.11   GC原理   
+1.11.1    堆、栈溢出描述
+java.lang.OutOfMemoryError: java heap space 可能会导致所有用户线程暂停，不可以通过try/catch解决。
+
+java.lang.StackOverflowError: 线程栈空间不足
+
+java.lang.OutOfMemoryError: PermGen space 是指方法区（永久代）内存溢出
+
+1.11.2    System.gc()
+执行System.gc()函数的作用只是提醒或告诉虚拟机，希望进行一次垃圾回收。
+
+至于什么时候进行回收还是取决于虚拟机，而且也不能保证一定进行回收（如果-XX:+DisableExplicitGC设置成true，则不会进行回收）
+
+ 
+
+1.11.3    GC回收哪些对象
+描述：通过一系列的名为“GC Roots”的对象作为起始点，从这些节点开始向下搜索（搜索所走过的路径称为引用链），当一个对象到GC Roots没有任何引用链相连（用图论的话来说就是从GC Roots到这个对象不可达）时，则证明此对象是不可用的。
+
+在Java语言，可作GC Roots的对象包括下面几种：
+
+1.虚拟机栈（栈帧中的本地变量表）中的引用的对象。
+
+2.方法区中的类静态属性引用的对象。
+
+3.方法区中的常量引用的对象。
+
+4.本地方法栈中JNI（即一般说的Native方法）的引用的对象。
+
+
+
+ 
+
+1.11.4    可能触发full gc的条件
+1、  MaxDirectMemeorySize（即NIO direct-buffer）超过，则触发System.gc
+
+java.nio.DirectByteBuffer对象里，这样就可以直接操作这些内存。这些内存只有在DirectByteBuffer回收掉之后才有机会被回收，因此如果这些对象大部分都移到了old，但是一直没有触发CMS GC或者Full GC，那么悲剧将会发生，因为你的物理内存被他们耗尽了，因此为了避免这种悲剧的发生，通过-XX:MaxDirectMemorySize来指定最大的堆外内存大小，当使用达到了阈值的时候将调用System.gc来做一次full gc，以此来回收掉没有被使用的堆外内存。永生代（Perm）或Metaspace被写满
+
+2、  永生代（Perm）或Metaspace被写满
+
+3、  年老代(tenured)被写满（达到限额）或上几次晋升对象的平均大小超过年老代空闲大小
+
+4、  System.gc被显示调用
+
+
+
+  [ 回目录 ]1.12   Java安全类库/安全管理器   
+1.12.1    SecurityManager
+在启用安全管理器的时候，配置遵循以下基本原则：
+
+1.         没有配置的权限表示没有。
+
+2.         只能配置有什么权限，不能配置禁止做什么。
+
+3.         同一种权限可多次配置，取并集。
+
+4.         统一资源的多种权限可用逗号分割。
+
+ 
+
+1.12.2    启动安全管理器方式
+1、启动参数方式
+
+启动程序的时候通过附加参数启动安全管理器：
+
+-Djava.security.manager
+
+2、若要同时指定配置文件的位置那么示例如下：
+
+-Djava.security.manager -Djava.security.policy="E:/java.policy"
+
+3、编码方式启动
+
+ 
+
+System.setSecurityManager(new SecurityManager());
+
+ 
+
+没有这种方式System.setProperty(“java.security.manager”, xxx);
+
+ 
+
+ 
+
+扩展阅读：
+
+https://www.cnblogs.com/itplay/p/10732329.html
+
+  [ 回目录 ]1.13   JDBC/SQL注入   
+1.13.1 三中类型Statement的区别
+Statement接口提供了执行语句和获取结果的基本方法；
+PreparedStatement接口添加了处理输入参数的方法；
+CallableStatement接口添加了调用存储过程核函数以及处理输出参数的方法
+SQL的执行需要编译和解析
+Statement每次的执行都需要编译SQL
+PreparedStatement会预编译，会被缓冲，在缓存区中可以发现预编译的命令，虽然会被再次解析，但不会被再次编译，能够有效提高系统性能
+
+考题1: CallableStatement是用用来执行存储过程的，出过考题。
+考题2：Statement执行效率比PreparedStatement效率高，是错误的。
+参考：https://www.cnblogs.com/noteless/p/10307273.html
+
+1.13.2    JDBC查询时，ResultSet中的fetchSize
+ResultSet的fetchSize越大、JDBC client端消耗的内存越大，性能也越快
+
+Fetch相当于读缓存，默认Fetch Size值是10，读取10000条记录，一次数据库交互，即rs.next的操作，ResultSet会一次性从数据库服务器，得到10条记录，下次执行rs.next，就直接使用内存读取，不用和数据库交互了，但总计需要有1000次交互，如果使用setFetchSize设置Fetch Size为10000，则只需要一次数据库交互，本地缓存10000条记录，每次执行rs.next，只是内存操作，不会有数据库网络消耗，效率就会高些。但需要注意的是，Fetch Size值越高则占用内存越高，要避免出现OOM错误。
+
+1.13.3    预编译语句与普通语句
+参数化查询是一种简单有效的防止SQL注入的查询方式，应该被优先考虑使用。另外，参数化查询还能提高数据库访问的性能。
+
+ 
+
+特别注意,下面这种方式虽然使用了PreparedStatement，但是没有使用参数化查询，也就没有使用到预编译技术，也不会发生编译错误，无法提升性能的，无法防止Sql注入：
+
+PreparedStatement p = null;
+
+…
+
+String sql = “select xx from xxx where name=“ + student.name”;
+
+…
+
+p= connection.prepareStatement(sql);
+
+p.execute();
+
+ 
+
+1.13.4  executeQuery, execute, executeUpdate区别
+JDBC中Statement 接口提供了三种执行 SQL 语句的方法：executeQuery、executeUpdate 和 execute。使用哪一个方法由 SQL 语句所产生的内容决定。
+
+(1) executeQuery用于产生单个结果集的语句，该方法返回ResultSet，ResultSet实现了iterator接口，所以无论如何executeQuery不会返回null
+
+ (2) executeUpdate方法     用于执行 INSERT、UPDATE 或 DELETE 语句以及 SQL DDL（数据定义语言）语句，例如 CREATE TABLE 和 DROP TABLE。
+
+    返回值是一个整数，用来表示受影响的行数。对于 CREATE TABLE 或 DROP TABLE 等不操作行的语句，executeUpdate 的返回值总为零。
+
+(3)execute方法: 可用于执行任何SQL语句，返回一个boolean值，表明执行该SQL语句是否返回了ResultSet。如果执行后第一个结果是ResultSet，则返回true，否则返回false。但它执行SQL语句时比较麻烦，通常我们没有必要使用。
+
+-java代码
+01
+//加载驱动
+02
+Class.forName(driver);
+03
+//获取数据库连接
+04
+conn = DriverManager.getConnection(url , user , pass);
+05
+//使用Connection来创建一个Statment对象
+06
+stmt = conn.createStatement();
+07
+//执行SQL,返回boolean值表示是否包含ResultSet
+08
+boolean hasResultSet = stmt.execute(sql);
+09
+//如果执行后有ResultSet结果集
+10
+if (hasResultSet){
+11
+    //获取结果集
+12
+    rs = stmt.getResultSet();
+13
+    while(rs.hasNext()) {
+14
+     // ...
+15
+    }
+16
+}
+
+（4）开发过程中一般不使用statement而是使用PrepareStatement预编译语句
+     1）解决sql注入问题
+     2）预编译提升执行效率
+
+1.13.5    ResultSet, Statement, Connection关闭顺序
+分析：
+1.垃圾回收机制可以自动关闭它们；
+2.Statement关闭会导致ResultSet关闭；
+3.Connection关闭不一定会导致Statement关闭。
+建议：
+(1) 由于垃圾回收的线程级别是最低的，为了充分利用数据库资源，有必要显式关闭它们，尤其是使用Connection Pool的时候；
+(2) 最优经验是按照ResultSet，Statement，Connection的顺序执行close；
+(3) 为了避免由于java代码有问题导致内存泄露，需要在rs.close()和stmt.close()后面一定要加上rs = null和stmt = null；
+(4) 如果一定要传递ResultSet，应该使用RowSet，RowSet可以不依赖于Connection和Statement。
+Java传递的是引用，所以如果传递ResultSet，你会不知道Statement和Connection何时关闭，不知道ResultSet何时有效。
+try{...
+
+} finally {
+
+  rs.close();
+
+  stmt.close();
+
+  conn.close();
+
+}
+
+1.13.6    DataSource考察
+
+关于DataSource的说法错误的是（B）
+A． DataSource是用于获取数据库链接的接口。
+B． DataSource对象的属性不可以修改。
+C． DataSource主要有三种类型实现：基本实现、连接池实现、分布式事务实现。
+D． 通过DataSource对象访问的驱动程序本身不会向DriverManager注册。
+
+
+1.13.7  SQL truncate 、delete与drop区别
+
+
+学习：https://www.cnblogs.com/8765h/archive/2011/11/25/2374167.html
+1.delete语句是数据库操作语言(dml)，这个操作会放到 rollback segement 中，事务提交之后才生效；如果有相应的 trigger，执行的时候将被触发。
+2.drop、truncate都是DDL语句(数据定义语言),执行后会自动提交。
+3.delete是DML语句,不会自动提交。drop/truncate都是DDL语句,执行后会自动提交。
+
+  [ 回目录 ]1.14   Socket   
+1.14.1    Socket哪些操作可能会进入阻塞状态
+1、  serversocket的accpet()监听客户端连接
+
+2、  执行socket的输出流写数据
+
+3、  执行socket的输入流读取数据
+
+
+
+4、  Socket的getOutputStream(), getInputStream()
+
+ 
+
+  [ 回目录 ]1.15   Stream/MapReduce   
+Java 8 中的 Stream 是对集合（Collection）对象功能的增强，它专注于对集合对象进行各种非常便利、高效的聚合操作（aggregate operation），或者大批量数据操作 (bulk data operation)。
+
+Stream和Collection的区别主要有：
+1.stream本身并不存储数据，数据是存储在对应的collection里，或者在需要的时候才生成的；
+2.stream不会修改数据源，总是返回新的stream；
+3.stream的操作是懒执行(lazy)的：仅当最终的结果需要的时候才会执行
+
+扩展阅读：
+
+https://blog.csdn.net/dm_vincent/article/details/40856569
+
+考察点：
+
+1.（单选）如下操作属于中间结果的是（）
+
+A. reduce() -终端操作
+
+B. map() - 中间操作
+
+C. forEach() -终端操作
+
+D. stream() -创建初始stream，还未启动中间操作和最终终止操作
+
+答案：map
+
+解析：
+
+使用stream的步骤如下：
+1.创建stream；
+2.通过一个或多个中间操作(intermediate operations)将初始stream转换为另一个stream；
+3.通过中止操作(terminal operation)获取结果；该操作触发之前的懒操作的执行，中止操作后，该stream关闭，不能再使用了；
+Stream中间操作分为如下三类
+（1）筛选与切片
+filter(Predicate p)：接收Lambda，从流中排除某些元素。
+limit(long maxSize)：截断流，使其元素不超过给定数量
+skip(long n)：跳过元素，返回一个扔掉了前n个元素的流。若流中元素不足n个，则返回一个空流。与limit（n）互补。
+distinct()：筛选，通过流所生成元素的hashCode()和equals()去除重复的元素
+（2）映射
+map(Function f)：接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素
+flatMap(Function f)：接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流。
+（3）排序
+sorted()：产生一个新流，其中按自然顺序排序
+sorted(Conparator comp)：产生一个新流，其中按照比较器顺序排序
+
+其他解释：
+reduce操作又称为折叠操作，用于将流中的所有值合成一个。实际上，Stream API中的mapToInt()方法返回的IntStream接口有类似的 average()、count()、sum()等方法就是做reduce操作，也就是该操作是一个终端操作。
+@Test
+public void reduceTest() {
+  Stream<Integer> list = Stream.of(1,2,3,4,5);
+  Optional<Integer> result = list.reduce((x, y) -> x + y);
+  System.out.println(result);
+}
+
+中间操作：例如peek()方法提供Consumer（消费）函数，但执行peek()方法时不会执行Consumer函数，而是等到流真正被消费时（终端操作时才进行消费）才会执行，这种操作为中间操作；
+终端操作：例如forEach()、collect()、count()等方法会对流中的元素进行消费，并执行指定的消费函数（peek方法提供的消费函数在此时执行），这种操作为终端操作。
+参考：
+
+https://www.ibm.com/developerworks/cn/java/j-lo-java8streamapi/index.html
+https://blog.csdn.net/bitcarmanlee/article/details/78492164
+https://www.jianshu.com/p/ab8a539104a6
+
+https://www.jianshu.com/p/2b40fd0765c3
+2. 关于Optional说法正确的是？
+
+A. Optional可以被赋值为null
+
+B. Optional.of()可以用null做参数，返回Optional.empty()
+
+C. Optional.ofNullable(obj),obj不为null时直接调用Optional.of(obj)
+
+D. Optiona,of()可以放置集合或对象。
+
+3.（单选）Java8 中stream流的概念和使用问题。如下选项，哪个是对的（B）
+
+A．stream 流的数据源只能是数组、容器、文件
+
+B． stream 流跟迭代器一样，使用完再次使用时需要重新生成
+
+C. stream的map是中间结果???
+
+D. ???
+
+解析；还有两个选项，想不起来
+
+A是错的，不止这些，因为没说发生器
+
+元素 Stream是一个来自数据源的元素队列，Stream本身并不存储元素。
+数据源（即Stream的来源）包含集合、数组、I/O channel、generator（发生器）等。
+聚合操作 类似SQL中的filter、map、find、match、sorted等操作
+管道运算 Stream在Pipeline中运算后返回Stream对象本身，这样多个操作串联成一个Pipeline，并形成fluent风格的代码。这种方式可以优化操作，如延迟执行(laziness)和短路( short-circuiting)。
+内部迭代 不同于java8以前对集合的遍历方式（外部迭代），Stream API采用访问者模式（Visitor）实现了内部迭代。
+并行运算 Stream API支持串行（stream() ）或并行（parallelStream() ）的两种操作方式。
+参考：https://www.jianshu.com/p/2b40fd0765c3
+
+
+  [ 回目录 ]1.16   了解多核并发、性能优化调优、CPU架构等   
+本次没有考点。
+
+ 
+
+  [ 回目录 ]2      通用规范理解与应用   
+《华为Java语言通用编程规范》
+
+
+
+  [ 回目录 ]2.1      编程实践   
+2.1.1    规则8.8.1 不要在代码中硬编码"\n"和"\r"作为换行符号
+使用System.lineSeparator();
+
+ 
+
+2.1.2    变量相关规范
+
+规则4.2 需要精确计算时不要使用float和double （要用BigDecimal）
+
+规则1.6 类、枚举和接口名称采用首字母大写的驼峰命名法
+
+规则1.8 常量名称全大写单词以下划线分隔
+
+变量命名符合规范的有哪些？
+
+A. private boolean isNotFound;
+
+B. enum {
+
+male,
+
+female
+
+}
+
+C. private String userName;
+
+D.private static final int NUM_FIVE = 5;
+
+答案：C
+
+ 解析：
+
+A. 建议1.1 避免使用否定的布尔变量名
+
+boolean isNoError;
+
+boolean isNotFound
+
+B. 枚举类型必须采用全大写
+
+enum{
+
+MALE(1),
+
+FEMALE(2)
+
+};
+
+C.答案正确 
+
+D. 规则1.6 常量名称大写单词以下划线分隔。不要使用魔鬼数字，用有意义的常量代替。不应该取NUM_FIVE=5或者NUM_5这样的魔鬼常量。
+
+下面字段声明中哪一个在interface主体内是合法的? （B）
+A.private final static int answer = 42;
+B.public static int answer = 42;
+C.final static answer = 42;
+D.int answer; 
+解析：接口中的属性在不提供修饰符修饰的情况下，会自动加上public static final
+A. 不能将public变更为private
+B. 与自动添加的限定符少了final但是系统会自动给添加上。尽管变量没有全大写，但是也能说的过去。
+C. 没有给出类型
+D. 没有给初始化赋值
+（1）属性不能用private，protected,default 修饰，因为默认是public
+（2）如果属性是基本数据类型，需要赋初始值，若是引用类型，也需要初始化，因为默认有final修饰，必须赋初始值；
+
+  [ 回目录 ]2.2      类和接口   
+2.2.1        规则6.2 不要在父类的构造方法中调用可能被子类覆写的方法
+父类的构造方法中调用可能被子类覆写的方法造成后果：
+
+
+
+
+  [ 回目录 ]2.3      异常和日志   
+2.3.1        规则7.2 方法抛出的异常，应该与本身的抽象层次相对应
+public Image loadImage(String path) throws FileNotFoundException //  ok
+
+public Image loadImage(String path) throws IOException // not ok  ？
+
+public void drawImage(int num) throws ArrayIndexOutOfBoundsException //  ok  ？
+
+ 
+
+2.3.2        规则7.3 在finally块中不要使用return、break或continue使finally块非正常结束
+说明：在finally中使用return、break或continue会使finally块非正常结束，造成的影响是，即使在try块或catch中抛出了异常，也会因为finally非正常结束而导致无法抛出。finally块非正常结束会有编译告警。
+
+  [ 回目录 ]2.4      国际化   
+2.4.1        规则8.9.2 不要依赖平台默认的字符编码方式，使用UTF-8
+2.4.2        规则8.9.3 字符串大小写转换、数字格式化为西方数字时，必须加上Locale.ROOT或Locale.ENGLISH
+ 
+
+  [ 回目录 ]3      安全规范理解与应用   
+《华为Java语言安全编程规范》
+
+
+
+ 
+
+  [ 回目录 ]3.1      数据校验   
+3.1.1        规则 1.1 跨信任边界传递的不可信数据使用前必须进行校验
+符合白名单校验规则的外部输入是可信数据
+
+ 
+
+3.1.2        规则 1.5 禁止向Runtime.exec()方法或java.lang.ProcessBuilder类传递不可信数据
+String cmd = 外部输入；
+
+System.Runtime.getRuntime().exec(cmd)
+
+3.1.3        规则 1.2 禁止直接使用不可信数据来拼接SQL语句
+ 
+
+“Select * from product where id = “ + Integer.parseInt(request.getParameter(“id”))：
+
+无sql注入风险，可能会有NumberFormatException
+
+ 
+
+3.1.4        建议 1.1 字符串校验前先进行标准化
+对于不可信数据，使用前进行过滤和校验处理，可以有效防止各种注入类攻击。Java代码中，主要使用Unicode编码方式。对于Unicode编码，同一字符可以有多重不同的表现形式，例如（“\uFE64”、“<”都可以表
+
+示“<”），所以在对不可信数据校验之前进行标准化是很有必要，否则可能会导致校验规则被绕过的风险
+
+错误示例：
+
+需要先标准化：s = Normalizer.normalize(s, Form.NFKC);
+
+ 
+
+ 
+
+  [ 回目录 ]3.2      线程同步   
+3.2.1        规则 5.1 禁止将系统内部使用的锁对象暴露给不可信代码
+private final Boolean lock1 = Boolean.FALSE;  // NOT OK
+
+private final Integer lock2 = 0;  // NOT OK
+
+private final String lock3 = "lock";// NOT OK
+
+private final Integer lock4 = new Integer(0); // OK
+  [ 回目录 ]3.3      I/O操作Runtime.exec   
+3.3.1 Runtime.getRuntime().exec 命令注入相关知识
+java应用可以通过Process 提供的getOutputStream()、getInputStream() 和 getErrorStream()来获得子进程输入输出信息。因为有些本机平台仅针对标准输入和输出流提供有限的缓冲区大小，当标准输出或者标准错误输出写满缓存池时，程序无法继续写入，子进程无法正常退出。读写子进程的输出流或输入流迅速出现失败，则可能导致子进程阻塞，甚至产生死锁。
+
+当调用Runtime.getRuntime().exe()后返回的Process对象除了可以读的三种输入输出流外，还有两个常用的方法:
+
+1、非阻塞方法exitValue()获得子进程退出的状态值（0，正常退出，非0异常退出），需要注意的是调用这个方法程序会立即得到结果，如果子进程没有执行完，调用这个方法会抛出IllegalThreadStateException，表示此 Process 对象表示的子进程尚未终止。
+
+2、阻塞方法 waitFor()导致当前线程等待，直到子进程结束并返回退出状态。如果已终止该子进程，此方法立即返回，如果没有终止该子进程，调用的线程将被阻塞，直到退出子进程。
+
+注意，执行外部命令符是，虽然 &是分割符号，但是ping命令不会区分，只执行一个命令
+
+Runtime.getRuntime().exec("ping.exe & echo.exe");
+
+3.3.1规则 6.3 防止让外部进程阻塞在输入输出流上
+1）error、output需要清理，防止阻塞
+
+
+
+
+
+ 
+
+2）对于那些从来不会读取其输入流的进程，不对其提供输入非但无害，且还有益。而对于那些从来不会发送数据到其输出流或者错误流的进程，不对其输出流或者错误流进行清空同样是有益无害的。因此，只要能够保证进程不会使用这些流，那么在程序中可以忽略其输入流、输出流、以及错误流。
+
+ 
+
+  [ 回目录 ]3.4      序列化和反序列化   
+3.4.1        收集部分题目，非真题
+参考：http://3ms.huawei.com/km/blogs/details/5896699
+
+ 
+ 
+
+  [ 回目录 ]3.5   安全红线相关   
+3.5.1        规则 7.2 将含敏感数据的对象跨信任域传递前必须进行签名并加密
+先签名后加密
+
+参考：http://3ms.huawei.com/km/blogs/details/5465851
+
+1)  签名
+
+发送方通过私钥来进行数字签名，接收方通过发送方发布的公钥进行数字签名的解密，用于验证发送方的身份。 
+
+2) 加密
+
+发送方通过接收方发布的公钥来对数据进行加密，接收方使用私钥来进行解密，用于保护信息不被非法窃取。
+
+3) 公钥和私钥到底哪个才是用来加密和哪个用来解密？
+
+既然是加密，那肯定是不希望别人知道我的消息，所以只有我才能解密，所以可得出公钥负责加密，私钥负责解密；同理，既然是签名，那肯定是不希望有人冒充我发消息，只有我才能发布这个签名，所以可得出私钥负责签名，公钥负责验证。
+
+4)为什么要先签名后加密？
+参考：http://jian0487.iteye.com/blog/444273
+具体步骤如下:
+Alice与Bob互换公钥。
+Alice用自己的私钥对TXT文件进行数字签名。
+Alice用Bob的公钥对TXT文件进行加密。
+Alice把经过数字签名和加密的文件TXT，通过邮件或其他传输途径，如QQ、MSN等）传给Bob。
+Bob在收到签名并加密的邮件后首先用Bob自己的私钥进行加密文件的解密，然后再用Alice的公钥进行数字签名解密。
+同样，在这个过程中Cinda也可以获取Bob、Alice的公钥和签名并加密的标书文件TXT。同时因无Bob的私钥而无法打开邮件。同时由于Alice在发送文件前已用自己的私钥进行了数字签名，所以当Bob在收到邮件后完全可以证实自己收到的就是Alice发来的邮件，而不可能是其他用户的。试想如果Cinda非法用户想要改变邮件，冒充Alice向Bob发送邮件，因Cinda没有Alice的私钥，所以在用其他用户的私钥进行数字签名时就不可能再以Alice的公钥来解密数字签名了。
+
+在这里要注意文件加密和数字签名的先后顺序，一定是先签名再加密，这样加密技术就可以同时保证邮件中的数字签名了。如果先加密，而后签名，非法用户在得到邮件后就可通过获取的公钥破解数字签名了，因为公钥是可以公开的，很容易被一些别有用心的人得到。数字签名破解后很可能签名被替换。当然邮件中的内容在没有收件人私钥的情况下还是无法打开的。
+3.5.2        禁止使用不安全的加密算法
+        对称加密是最快速、最简单的一种加密方式，加密（encryption）与解密（decryption）用的是同样的密钥（secret key）。对称加密通常使用的是相对较小的密钥，一般小于256 bit。因为密钥越大，加密越强，但加密与解密的过程越慢。非对称加密为数据的加密与解密提供了一个非常安全的方法，它使用了一对密钥，公钥（public key）和私钥（private key）。
+        私钥只能由一方安全保管，不能外泄，而公钥则可以发给任何请求它的人。非对称加密使用这对密钥中的一个进行加密，而解密则需要另一个密钥。比如，你向银行请求公钥，银行将公钥发给你，你使用公钥对消息加密，那么只有私钥的持有人--银行才能对你的消息解密。与对称加密不同的是，银行不需要将私钥通过网络发送出去，因此安全性大大提高。
+       除标准协议规定及兼容性考虑的预留使用情况外，禁止使用不安全的密码算法，如：DES、3DS、SKIPJACK、RC2、PC4(128位以下)、Blowfish(128位以下)、RSA(1024及以下)、MD2、MD4。
+推荐使用如下算法：
+对称加密算法建议使用：AES（128位及以上）；
+非对称加密算法建议使用：RSA（2048位及以上）；
+哈希算法建议使用：SHA2（256及以上）；
+HMAC（基于哈希的消息验证码）算法建议使用：HMAC-SHA2。
+考察点：
+禁止采用如下哪些算法进行口令加密？
+A. RSA
+B. DES
+C. SKIPJACK
+D.MD5
+
+答案：BD，迷惑：SKIPJACK/RSA在1024位一下不推荐，DES和MD5绝对禁止，所以把答案从ABCD调整为BD
+解析：http://3ms.huawei.com/km/blogs/details/2182019
+【红线观察项】禁止使用业界已知不安全的加密算法,DES/3DES（除密钥K1≠K2≠K3外的场景）/SKIPJACK/RC2/RSA（1024位及以下）/MD2/MD4。
+
+禁止MD5应用在参与生成“数字签名”/口令
+
+
+3.5.3        规则 9.5 安全场景下必须使用强随机数
+java.security.SecureRandom  // ok
+
+java.util.concurrent.ThreadLocalRandom  // not ok
