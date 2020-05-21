@@ -1,0 +1,116 @@
+可信编程知识与应用认证科目（科目2）_0429_java工作级 
+60题：45单选题（2分一题）+15多选题（3分一题）大于总分的70%通过
+1	分析执行结果：true、false，true
+int a1 = new Integer(100);
+int a2 = new Integer(100);
+Integer a3 = new Integer(150);
+Integer a4 = new Integer(150);
+System.out.println(a1 == a2);
+System.out.println(a3 == a4);
+System.out.println(a3 == 150);
+2	switch语句支持的类型
+char,  byte,   short,   int，Character,  Byte,  Short,  Integer，enum,String
+unsinged int是否可以？-----不可以
+3	容易利于DOS攻击的敏感异常：
+javax.naming.InsuﬃcientResourcesException 服务器资源不足（可能有利于DoS攻击）
+java.lang.OutOfMemoryError DoS
+java.lang.StackOverﬂowError DoS
+4	将含敏感数据的对象跨信任域传递前必须进行签名并加密。先签名后加密
+5	禁止将系统内部使用的锁对象暴露给不可信代码
+private final Boolean lock1 = Boolean.FALSE;  // NOT OK
+private final Integer lock2 = 0;  // NOT OK
+private final String lock3 = "lock";// NOT OK
+private final Integer lock4 = new Integer(0); // OK
+
+6	PrepareStatement，Statement，CallableStatement的区别
+1）PrepareStatement效率高，比Statement有更好的安全性
+2）CallableStatement可用于存储过程的执行
+7	HashMap的特点考察
+1）HashMap允许null的key和null的value
+2）HashMap的存储的有序的键值对（错）
+8	集合描述错误的是：
+1）HashMap允许null的key和null的value 
+2）HashTable 不允许null的key和null的value
+3）Treemap 允许null的key和null的value（错）
+9	集合描述错误的是
+ArrayList的默认长度值16（错）
+HashMap的默认长度值16
+HashSet的默认长度值16。
+StringBuﬀer的默认长度值16。
+考点：DEFAULT_INITIAL_CAPACITY，比如ArrayList(默认10)、StringBuilder(默认16)、StringBuﬀer(默认16)、HashMap(默认16)、HashSet(默认16)
+10	对于if-else if（后续可能有多个else if）类型的条件判断，后应该包含一个else分支。原因是：
+多个else if条件组合的判断逻辑，往往会出现开发人员忽略的分支，需要设置else默认操作
+
+11	方法返回值描述错误的是：D
+A．方法的返回值必须被正确解析或者使用
+B．方法可以没有返回值
+C．返回值可以没有被用到
+D．方法的返回值可被忽略
+
+12	抽象类特点考察，正确的是
+A．必须定义前缀为Abstract
+B．所有方法必须定义为抽象
+C．抽象类可以实例化
+
+13	日志打印，敏感信息不打印，密码打印采用固定长度***打印
+
+
+14	可转换为double的数据类型（等同于Math.sqrt(double d1)入参是哪些） ACD
+A．byte
+B．string
+C．float
+D．long
+
+15	关于驼峰式命名的方法：ABCD
+A．类、枚举和接口名称采用首字母大写的驼峰命名法
+B．方法名称采用首字母小写的驼峰命名法.
+C．非常量字段名称采用首字母小写的驼峰命名法
+D．命名和驼峰解耦，xxx定义单一。（具体想不起来了，但是说法是对的）
+
+16	下面关于注释说法不正确的有哪些？ ACD
+ A．对于所有方法有参数、返回值、异常等信息时，必须在Javadoc块中描述：功能、@param、@return、@throw等
+B．非public非protected的方法，命名无法表达的信息，应该加以注释说明
+C．Javadoc标签与内容之间只1个空格，@param、@throw 、@return顺序排列
+D．Javadoc用于每一个public、protected或者private修饰的元素
+17	按照编程规范，下列哪些信息时禁止输入到日志中的（BCD）
+A．时间发生的时间、时间类型
+B．密钥
+C．明文口令
+D．密文口令
+
+18	以下哪些场景需要将对象进行密封和数字签名来保证数据安全（BCD）
+A．敏感数据持久化报错
+B．非类似SSL通信传输通道
+C．序列化敏感数据
+D．传输敏感数据
+19	以下有关Thread异常处理说法正确的是(BCD)
+A．子线程自身不必捕获异常，而是由主线程捕获即可
+B．对于运行时异常可调用Thread.setUncaughtExceptionHandler()方法设置运行时异常处理器来进行处理
+C．默认情况下，运行时异常从线程抛出时，会在控制台输出堆栈记录
+D．子线程须自己捕获异常处理
+20	下面哪些是Thread类的方法 ABD
+A．run()
+B．getPriority()
+C．exit()
+D．start()
+21	有关类加载器的双亲委派模型说法错误的时（C）
+A 类加载器之间是有层次结构
+B 加载不到类，会抛出ClassNotFoundException();
+C 如果一个类加载器收到了类加载请求，先检查自己能不能加载，如果不能，向父加载器申请；
+D 如果一个类加载器收到了类加载请求，先看父加载器能不能加载，一直如此到顶端加载器，顶端类加载器可以加载，则返回，如果不行本类加载器加载
+22	下边这段代码的输出结果为（D）
+int fst = 5;
+int snd = 2;
+while(snd < fst--) {
+		snd++;
+}
+System.out.print(snd);
+A 5 
+B 2
+C 3 
+D 4
+23	下面关于字符流和字节流说法正确的是（）
+A．字符向字节转换时，需要注意编码问题；
+B．字节流继承于InputStream OutputStream，字符流继承于InputSteamReader OutputStreamWriter；
+C．字符串使用了缓冲区(buffer)，而字节流没有使用缓冲区；
+D．字符是字节通过不同编码的包装；相同的字节代码相同的字符；
