@@ -1,0 +1,524 @@
+可信编程知识与应用（java客观题）考点总结
+1.	编程语言知识与应用
+1.1	原始数据类型
+1.1.1	数值比较
+1）	整型包装类比较
+对于 Integer var = ? 在-128 至 127 范围内的赋值，Integer 对象是在 IntegerCache.cache 产生，会复用已有对象，所以：
+-128 至 127区间内的 Integer 值用==可以判断相等；
+但是这个区间之外的所有数据，都会在堆上产生，并不会复用已有对象，此时其地址不同，用==判断会不相等，正常建议都用equals判断。
+2）浮点包装类比较
+与0.0f或0.0d作算术比较(>或<判断)是允许的，但不能直接判断相等==。做大小比较时考虑使用Float或Double的compare (f1, f2)方法，或BigDecimal。
+整数型包装类型应该使用equals方法做比较。浮点型包装类型不能用equals或者flt.compareTo(another) == 0进行相等的比较（可以进行compareTo(another)的大小比较）。
+计算绝对值是否小于1e-6：(Math.abs(a -10.0) < 1e-6)
+反例：for(double x = 0; x !=10; x += 0.1)，导致死循环
+
+浮点型数据默认为double类型。添加后缀f标识float
+1.1.2	基本类型和不可变类型
+【8个基本类型】
+字符类型char
+布尔类型boolean
+数值类型byte、short、int、long、float、double
+【不可变类】
+创建该类的实例后，该实例的实例变量是不能改变的。Java提供的8个包装类、String类都是不可变类。如Interger、Long和String等。
+不可变类设计原则：
+1.class要用final修饰，保证类不能被继承；
+2.成员变量需要用private String来修饰，保证成员变量均为私有变量；
+3.类中不允许提供setter方法，保证成员变量不会被改变；
+4.成员变量的getter方法中返回该对象的复制对象，保证原对象的引用不被改变；
+注意：String对象不可变，其replace方法都是会新开一块内存，而不是原地替换。
+
+1.1.3	BigInteger和BigDecimal
+https://www.liaoxuefeng.com/wiki/1252599548343744/1279768011997217
+这两个同样也是不可变类。注意要把结果值返回，它不会修改原值：
+ 
+BigDecimal用scale()表示小数位数，用于精确计算！
+另外对BigDecimal进行比较必须使用compareTo()方法来比较，它根据两个值的大小分别返回负数、正数和0，分别表示小于、大于和等于。使用equals()方法不但要求两个BigDecimal的值相等，还要求它们的scale()相等：
+ 
+1.1.4	java中的大小端
+	存储量大于1字节，非char类型，如int，float等，要考虑字节的顺序问题了。java由于虚拟机的关系,屏蔽了大小端问题,需要知道的话可用 ByteOrder.nativeOrder() 查询。在操作ByteBuffer中，也可以使用 ByteBuffer.order() 进行设置
+1.1.5	32位和64位
+	仅long型数据字节有差别。32位下为4字节，64位下为8字节。
+1.1.6	字符串处理
+StringBuffer是线程安全的,效率低
+StringBuilder是线程不安全的,效率高
+1.1.7	可变参数
+•  1、只能出现在参数列表的最后； 
+•  2、... 位于变量类型和变量名之间，前后有无空格都可以; 
+•  3、调用可变参数的方法时，编译器为该可变参数隐含创建一个数组，在方法体中以数组的形式访问可变参数。 
+•  4、如果一个是两个方法是重载，一个是可变参数，一个是固定参数，然后我们调用方法如果固定长度的能满足，那么有优先调用固定长度的，
+1.1.8	Java安全类库/安全管理器
+1.1.8.1	SecurityManager
+在启用安全管理器的时候，配置遵循以下基本原则：
+1.         没有配置的权限表示没有。
+2.         只能配置有什么权限，不能配置禁止做什么。
+3.         同一种权限可多次配置，取并集。
+4.         统一资源的多种权限可用逗号分割。
+1.1.8.2	启动安全管理器方式
+1、启动参数方式
+启动程序的时候通过附加参数启动安全管理器：
+-Djava.security.manager
+2、若要同时指定配置文件的位置那么示例如下：
+-Djava.security.manager -Djava.security.policy="E:/java.policy"
+3、编码方式启动
+System.setSecurityManager(new SecurityManager());
+ 
+没有这种方式System.setProperty(“java.security.manager”, xxx);
+
+1.2	流程控制语句
+1.2.1	break/continue label用法
+break label用于跳出label后的语句块，用于跳出多重循环，（一般后面跟的就是一个循环语句）。
+continue label用于继续执行外层循环。
+注意：break label一定要保证在label语句块内，否则报语法错误。
+        label1:
+        while (true) {
+            for (int i = 0; i <= 10; i++) {
+                System.out.println("i=" + i);
+                if (i == 5) {
+                    break label1;
+                }
+            }
+        }
+1.2.2	switch支持的变量类型
+char,  byte,   short,   int
+Character,  Byte,  Short,  Integer
+enum
+String
+没有boolean，long
+1.3	类、接口、对象
+1.3.1	Java的单继承和多继承
+Java可以支持多层继承，即A->B->C->Object。
+java类是单继承的。classB Extends classA
+java接口可以多继承。Interface3 Extends Interface0, Interface1, interface……
+不允许类多重继承的主要原因是，如果A同时继承B和C，而B和C同时有一个D方法，A如何决定该继承那一个呢？
+但接口不存在这样的问题，接口全都是抽象方法继承谁都无所谓，所以接口可以继承多个接口。
+此时如果B和C接口中同样的方法但返回值不同，会报编译错误：
+ 
+有同样方法时，子类：先用自己方法实现——》继承父类方法实现——》继承接口方法实现。
+1.3.2	类和成员可见性/作用域
+【类可见性】
+public 所有可见
+private 仅对本类可见。
+protected 本包和子类（包括外部包的子类）可见。
+default(没有修饰符) 本包可见，外部包的子类都不行
+
+子类可以覆盖父类的protected方法，并把它的可见性改为public，但是子类不能降低父类中定义的方法的可访问性。【子类可以扩大访问权限】
+	对于属性来说，不具备继承性。子类和父类的属性的是完全无关的，如果直接通过实例对象访问public属性，其值取决于声明时的变量类型
+
+【类的成员可见性】
+      public:公共成员，其它类可见(包内，包外都可见)，包内包外子类都可见;内部嵌套类可见；
+      protected:保护级，包内其它类可见，包内包外子类都可见;内部嵌套类可见；
+      无关键字:友好的，包内其它类可见，包外子类不可见；内部嵌套类可见；无继承性。
+      private:私有的，其它类不可访问，只对该类的内部类可见
+1.3.3	函数重载overload与覆盖override
+1)	函数重载发生在同一个类的内部。这组函数具有相同的函数签名，但是参数列表不相同
+2)	函数覆盖发生在子类与父类之间。父类中定义了一个虚函数，在子类中重新实现了这个函数
+【注意】名字隐藏：指的是父类中有一组重载函数，子类在继承父类的时候如果覆盖了这组重载函数中的任意一个，则其余没有被覆盖的同名函数在子类是不可见的。
+【注意】函数签名：函数的名称及其参数类型组合在一起，就定义了一个唯一的特性，称为函数签名。（不包括返回类型和访问修饰符）。重载具有相同的函数签名。
+1.3.4	变量与函数的运行时绑定规律
+Java的引用变量有两种类型：编译时类型由声明该变量时使用的类型决定，运行时类型由实际赋给该变量的对象决定。
+ 引用变量的方法：在编译阶段只能调用其编译时类型所具有的方法，但运行时则执行它运行时类型所具有的方法。对象的属性则不具备多态性（此时如果用public直接访问属性，那属性的值取决于变量定义的类）。
+	前期绑定：在程序执行之前进行绑定（如果有的话，由编译器和连接器完成）。面向过程C语言的方法调用。
+	动态绑定或运行时绑定：在程序运行时根据对象的类型进行绑定。
+		如子类覆盖父类方法。属性不能被覆盖重写：
+		 
+		运行结果：Father'name（直接访问了public的属性）
+	注意：Java中除了static、final、private和构造方法之外，其他方法都是后期绑定。
+1.3.5	变量初始化
+java中域(成员属性)会被自动赋予初值，int/false/null，而局部变量中的则不会，如果使用未初始化的局部变量会导致错误！
+ 
+1.3.6	Default函数(默认方法)
+Java 8 引入了新的语言特性——默认方法（Default Methods）。
+	针对接口而言——在接口中的方法签名前加上了 default 关键字的实现方法。
+	目的：允许您添加新的功能到现有库的接口中，并能确保与采用旧版本接口编写的代码的二进制兼容性，如forEach方法。接口的实现类不需要去实现接口的所有方法。
+interface InterfaceA {
+    default void foo() {
+        System.out.println("InterfaceA foo");
+    }
+}
+	Default函数的继承：多继承存在冲突时，需要手动解决冲突，覆写存在歧义的方法，并可以使用 InterfaceName.super.methodName(); 的方式手动调用需要的接口默认方法。
+1.3.7	函数式接口
+函数式接口：接口中只有一个抽象方法
+修饰符 interface 接口名称 { 
+public abstract 返回值类型 方法名称(可选参数信息);
+ // 其他静态方法内容 
+}
+@FunctionalInterface注解
+Java 8中专门为函数式接口引入了一个新的注解： @FunctionalInterface 。该注解可用于一个接口的定义上,一旦使用该注解来定义接口，编译器将会强制检查该接口是否确实有且仅有一个抽象方法，否则将会报错。
+	函数接口,你可以理解为对一段行为的抽象,简单点说可以在方法就是将一段行为作为参数进行传递。函数接口就是对匿名内部类的优化。 如 Runnable类等
+【四大基础函数接口】
+一、功能性接口：Function  接收一个功能参数t，并返回一个功能结果R。
+举例：可以简写为   Function<String,String> function = (str) -> "hello,"+str;
+        Function<String,String> function = (str) ->{
+            return "hello,"+str;
+        };
+        String str = function.apply("Tassel");
+		System.out.println(str);
+【可以看出把一个lamda表达式（也可以是函数片段）赋给function，function调用自己的apply即可完成调用】
+二、断言性接口：Predicate  主要用到test方法 其中参数t为输入参数，如果输入参数符合断言则返回true，否则false
+Predicate<Integer> predOdd = integer -> integer % 2 == 1; System.out.println(predOdd.test(5));
+三、供给性接口：Supplier 不接收任何参数 但有返回值
+Supplier<String> getInstance = () -> "HelloWorld!"; System.out.println(getInstance.get());
+四、消费性接口：Consumer   只接收一个参数t，但是没有返回值。
+Consumer<String> printString = s -> System.out.println(s); printString.accept("helloWorld!")
+1.3.8	==，equal()和hashCode()
+“==”：是运算符，直接比较的就是两个对象的地址；
+equals()：用于判断其他对象内容是否相同。是Object类的函数，默认和==相同都是比较地址，但是String、Math、Integer、Double等封装类中都对equals()进行了不同程度的重写，用于比较内容。
+HashCode()：hashCoed也是Object类里面的方法，返回值是一个对象的散列码。 
+　　Java对象的eqauls方法和hashCode方法是这样规定的：
+　　　　1、相等（相同）的对象必须具有相等的哈希码（或者散列码）。
+　　　　2、如果两个对象的hashCode相同，它们并不一定相同。
+	在集合查找时，使用hashcode无疑能大大降低对象比较次数，提高查找效率！
+　　Java集合判断两个对象是否相等的规则是:
+　　　　1.首先要判断两个对象的hashCode是否相等；
+　　　　2.判断两个对象用equals()是否相等。
+	一般要求：当然重写其中一个方法.equals(),hashCode() 都需要重写另一个方法
+他们是搭档起来就是判断对象是否相同（hashCode()在前，.equals()在后）。
+1.3.9	Cloneable
+Cloneable是标记型的接口，它们内部都没有方法和属性，实现 Cloneable来表示该对象能被克隆，能使用Object.clone()方法。如果没有实现 Cloneable的类对象调用clone()就会抛出CloneNotSupportedException。
+	深拷贝和浅拷贝。
+要让对象可被拷贝：1）让该类实现java.lang.Cloneable接口；2）重写（Override）Object的clone()方法；
+1.3.10	Serializable
+Serializable也是一个空接口，它的目的只是简单的标识一个类的对象可以被序列化。只要对象实现了 java.io.Serializable 就可以进行序列化。
+序列化：就是把对象转化成字节。
+反序列化：把字节数据转换成对象。
+目的：为了保存在内存中的各种对象的状态（也就是实例变量，不是方法），并且可以把保存的对象状态再读出来，这是java中的提供的保存对象状态的机制—序列化。
+序列化场景：1、对象网络传输；2、对象保存至文件中。
+
+当某个字段被声明为transient后，默认序列化机制就会忽略该字段。
+根据 serialVersionUID 值进行判断类是否修改过。
+writeObject()方法与readObject()方法
+1.3.11	finalize()
+finalize()方法是Object类中提供的一个方法，在GC准备释放对象所占用的内存空间之前，它将首先调用finalize()方法。（类似于C++中的析构函数）。
+在Java中，由于GC的自动回收机制，因而并不能保证finalize方法会被及时地执行（垃圾对象的回收时机具有不确定性），也不能保证它们会被执行(程序由始至终都未触发垃圾回收)。
+	finalize()方法中一般用于释放非Java 资源（如打开的文件资源、数据库连接等）,或是调用非Java方法（native方法）时分配的内存（比如C语言的malloc()系列函数）。
+	【Java通用规范中已禁止调用该方法】由于finalize()方法的调用时机具有不确定性，不知道多久能回收资源甚至不回收，因而通常的做法是提供显示的close()方法供客户端手动调用。
+finalize只能被调用一次；也就是说，覆盖了finalize方法的对象需要经过两个GC周期才能被清除。
+	【只要JVM还没有快到耗尽内存的地步，它是不会浪费时间进行垃圾回收的。】
+1.4	集合
+1.4.1	collection各类和接口继承结构
+ 
+【Collection类的选择】
+唯一吗?
+是：Set
+排序吗?
+是：TreeSet或LinkedHashSet
+否：HashSet
+如果你知道是Set，但是不知道是哪个Set，就用HashSet。
+否：List
+要安全吗?
+是：Vector
+否：ArrayList或者LinkedList
+查询多：ArrayList
+增删多：LinkedList
+如果你知道是List，但是不知道是哪个List，就用ArrayList。
+Map中常用子类：HashMap、HashTable、TreeMap、ConcurrentHashMap。
+HashMap：基础hash表，非线程安全，性能高。
+TreeMap：有序键值对，按key排序
+Hashtable：类似于HashMap，线程安全。性能低。
+ConCurrentHashMap：HashMap + Hashtable。线程安全且性能较好。
+
+HashMap基于数组和链表实现
+ConCurrentHashMap
+	https://crossoverjie.top/2018/07/23/java-senior/ConcurrentHashMap/
+	在Java1.7中采用分段锁，在Java1.8中采用了 CAS + synchronized 来保证并发安全性。
+1.4.2	LinkedHashMap
+LinkedHashMap是HashMap的子类，但是内部还有一个双向链表维护键值对的顺序，每个键值对既位于哈希表中，也位于双向链表中。LinkedHashMap支持两种顺序插入顺序 、 访问顺序（即遍历map时的顺序）
+【插入顺序】：先添加的在前面，后添加的在后面。修改操作不影响顺序
+【访问顺序】：所谓访问指的是get/put操作，对一个键执行get/put操作后，其对应的键值对会移动到链表末尾，所以最末尾的是最近访问的，最开始的是最久没有被访问的，这就是访问顺序。（头部结点为最不常访问结点）
+LinkedHashMap有5个构造方法，其中4个都是按插入顺序，只有一个是可以指定按访问顺序：（可以用于实现LRU缓存）
+public LinkedHashMap(int initialCapacity, float loadFactor, boolean accessOrder)
+其中参数accessOrder就是用来指定是否按访问顺序，如果为true，就是访问顺序。
+public class LRUCache<K, V> extends LinkedHashMap<K, V>
+1.4.3	集合初始化、大小和扩容机制
+1.4.3.1	建议在集合初始化时指定集合容量大
+	如果没有设置大小，随着元素不断增加，需要不断resize重建hash表，影响性能。
+ ArrayList list = new ArrayList(20);	// 指定初始容量
+阿里开发手册建议：
+ 
+1.4.3.2	Java集合的默认大小和扩容
+ArrayList、Vector默认初始容量为10
+HashSet、HashMap：默认初始容量为16
+Vector：加载因子为1：即当 元素个数 超过 容量长度 时，进行扩容
+　　　　扩容增量：原容量的 1倍，如 Vector的容量为10，一次扩容后是容量为20
+ArrayList： 扩容增量：原容量的 0.5倍+1
+HashSet：默认初始容量为16，加载因子为0.75 ，扩容增量：原容量的 1 倍 
+Map是一个双列集合
+HashMap：默认初始容量为16，加载因子为0.75，扩容增量：原容量的 1 倍
+1.4.3.3	ArrayList的动态扩容机制
+使用无参构造器创建的ArrayList初始容量为0，第一次调用add()/addAll()方法时才会初始化数组的容量，初始容量为10
+对集合添加若干个元素时，如果当前集合的容量满足需求，不扩容；如果当前集合容量不满足需求，则扩大为原来的1.5倍；如果扩大1.5倍依然不满足需求，则扩大为满足需求的最小容量。
+1.4.3.4	初始化方法
+Map和set的初始化
+	HashMap<String, String > h = new HashMap<String, String>() { {
+        put("a","b");
+    } };
+List的初始化
+	List<String> numbers = new ArrayList<>(Arrays.asList("1", "2", "3"));
+	Arrays.asList得到的是一个长度和内容固定的列表，不能修改。
+数组的初始化
+	【一维数组指定内容】int[] a2 = new int[] {1, 2, 3};
+	【二维数组指定大小】int [][] a4 = new int[4][4];
+1.4.4	Collections和Arrays工具类
+1.4.4.1	Collections常用方法
+1.	max(Collection <? extends T> coll)：根据元素的自然顺序，返回给定集合元素中的最大元素
+2.	min(Collection <? extends T> coll)：根据元素的自然顺序，返回给定集合元素中的最小元素
+3.	Shuffle（element）：洗牌方法，将当前集合内的数据进行随机打乱。
+4.	Reverse（element）：逆序排序，对当前集合的元素按照相反的顺序进行排序
+5.	Sort（element）：对当前集合进行升序排序,默认升序。
+		一是元素必须实现Comparable接口；
+		二是传入实现Comparator的参数。
+6.	replaceAll替换批定元素为某元素,若要替换的值存在刚返回true,反之返回false
+Collections.replaceAll(list, "aaa", "bbb")
+7.	copy将集合n中的元素全部复制到m中,并且覆盖相应索引的元素
+Collections.copy(m,n);
+8.	swap交换集合中指定元素索引的位置
+Collections.swap(m, 2, 3);
+9.	fill用对象o替换集合list中的所有元素
+Collections.fill(nums, 0);
+1.4.4.2	Arrays常用方法
+1.	asList(T… data) 注意：该方法返回的是Arrays内部静态类ArrayList。
+2.	toString(int[] a)方法：返回一个指定数组的字符串表现形式
+		Arrays.toString(array1)); // 输出结果为[1, 2, 3, 4]
+		deepToString 用来打印多层次嵌套的数组元素。
+3.	fill(int[] a, int value)方法：给指定数组的每个元素分配指定的值
+4.	sort(int[] a)：按升序对指定数组进行排序（和Collections.sort同样）
+parallelSort() :java8新增的并行排序算法（稳定排序，数据量大时使用）
+5.	binarySearch(int[] a, int value)：使用二分搜索算法在指定的数组中搜索指定的值，并返回该值所在索引位置；若查询不到，则返回-1
+6.	copyOf(T[] original, int newLength)拷贝数组，其内部调用了 System.arraycopy() 方法，从下标0开始，如果超过原数组长度，会用null进行填充
+7.	copyOfRange(T[] original, int from, int to)
+8.	equals(Object[] array1, Object[] array2)判断两个数组是否相等，实际上比较的是两个数组的哈希值
+1.4.5	WeakReference弱引用
+在Java里, 当一个对象o被创建时, 它被放在Heap里. 当GC运行的时候, 如果发现没有任何引用指向o, o就会被回收以腾出内存空间. 或者换句话说, 一个对象被回收, 必须满足两个条件: 1)没有任何引用指向它 2)GC被运行。
+（可以是手动置空引用来回收对象内存 c= NULL）
+对于简单对象, 当调用它的方法执行完毕后, 指向它的引用会被从stack中popup, 所以他就能在下一次GC执行时被回收了。
+但是，当使用cache的时候, 由于cache的对象正是程序运行需要的, 那么只要程序正在运行, cache中的引用就不会被GC给回收。
+Strong reference:
+Object c = new Car(); //只要c还指向car object, car object就不会被回收
+weak reference:
+WeakReference<Car> weakCar = new WeakReference<Car>(car);
+当一个对象仅仅被weak reference指向, 而没有任何其他strong reference指向的时候, 如果GC运行, 那么这个对象就会被回收
+当要获得weak reference引用的object时, 首先需要判断它是否已经被回收:
+if(weakCar.get()!=null)
+【一般用weak reference引用的对象是有价值被cache, 而且很容易被重新被构建, 且很消耗内存的对象.】
+另外， java提供了一个ReferenceQueue来保存这些所指向的对象已经被回收的reference.
+soft reference和weak reference一样, 但被GC回收的时候需要多一个条件: 当系统内存不足时, soft reference指向的object才会被回收. 正因为有这个特性, soft reference比weak reference更加适合做cache objects的reference. 因为它可以尽可能的retain cached objects, 减少重建他们所需的时间和消耗.
+1.4.6	for-each 循环优于传统for循环
+for-each循环在简洁性和预防Bug方面有着传统的for循环无法比拟的优势，并且没有性能损失。尽可能多使用。在数组和list上均可采用（只要是实现了Iterable接口的对象）。
+有三种情况下不可用 过滤删除指定元素、修改指定元素值、并行遍历多个集合。
+1.4.7	HashMap中的equal和hashCode
+通过对key的hashCode()进行hashing，并计算下标( n-1 & hash)，从而获得buckets的位置。如果产生碰撞，则利用key.equals()方法去链表或树中去查找对应的节点
+1.5	异常处理
+1.5.1	异常种类和继承结构
+Throwable是所有Error和Exception的超类，他们的区别是：
+Error类一般是指与虚拟机相关的问题，如系统崩溃，虚拟机错误，内存空间不足，方法调用栈溢等。对于这类错误的导致的应用程序中断，仅靠程序本身无法恢复和和预防，遇到这样的错误，建议让程序终止。
+Exception类表示程序可以处理的异常，可以捕获且可能恢复。遇到这类异常，应该尽可能处理异常，使程序恢复运行，而不应该随意终止异常。
+Exception类又分为运行时异常（Runtime Exception）和受检查的异常(Checked Exception )。
+运行时异常：ArithmaticException,IllegalArgumentException，编译能通过，但是一运行就终止了，程序不会处理运行时异常，出现这类异常，程序会终止。
+受检查的异常，要么用try catch捕获，要么用throws字句声明抛出，交给它的父类处理，否则编译不会通过。
+ 
+1.5.2	try catch finally中的return
+https://www.cnblogs.com/cjeandailynotes/p/10565597.html
+结论：
+1、不管有没有出现异常，finally块中代码都会执行；
+2、当try和catch中有return时，finally仍然会执行；
+3、finally是在return后面的表达式运算后执行的（此时并没有返回运算后的值，而是先把要返回的值保存起来，不管finally中的代码怎么样，返回的值都不会改变，任然是之前保存的值），所以函数返回值是在finally执行前确定的；
+4、finally中最好不要包含return，否则程序会提前退出，返回值不是try或catch中保存的返回值。
+ 
+1.5.3	try-with-resources语句
+使用try-with-resources优雅的关闭资源。try-with-resources语句保证了每个声明了的资源在语句结束的时候都会被关闭。任何实现了java.lang.AutoCloseable接口的对象，和实现了java.io.Closeable接口的对象，都可以当做资源使用。
+ 
+在try中创建好资源，在后面使用。又如：
+	try (Statement stmt = con.createStatement()) {
+	……
+	} catch (SQLException e) {
+        JDBCTutorialUtilities.printSQLException(e);
+    }
+try-with-resources语句也可以像普通的try语句一样，有catch和finally代码块。在try-with-resources语句中，任何的catch和finally代码块都在所有被声明的资源被关闭后执行。
+1.5.4	throw/throws
+1)throw是语句抛出一个异常。(明确了这个地方要抛出这个异常)
+         throw e;
+2)throws是方法可能抛出异常的声明。(用在声明方法时，表示该方法可能要抛出异常)
+         public void doA(int a) throws Exception1,Exception3{......}
+1.5.5	线程和线程池的异常处理
+https://www.cnblogs.com/yangfanexp/p/7594557.html
+在普通的单线程程序中，捕获异常只需要通过try catch finally代码块就可以了。在并发情况下，比如在父线程中启动了子线程，如何在父线程中捕获来自子线程的异常，从而进行相应的处理呢？
+让我们回忆一下Runnable接口的run方法的完整签名，因为没有标识throws语句，所以方法是不会抛出checked异常的。至于RuntimeException这样的unchecked异常，由于新线程由JVM进行调度执行，如果发生了异常，也不会通知到父线程。
+	public abstract void run()
+【线程的异常处理】
+方法一：子线程中try... catch...
+方法二：为线程设置“未捕获异常处理器”UncaughtExceptionHandler
+为线程设置异常处理器。具体做法可以是以下几种：
+（1）Thread.setUncaughtExceptionHandler设置当前线程的异常处理器；（线程默认没有异常处理器）
+（2）Thread.setDefaultUncaughtExceptionHandler为整个程序设置默认的异常处理器；
+使用时顺序：优先使用当前线程的UncaughtExceptionHandler——》使用线程组的UncaughtExceptionHandler——》使用全局默认DefaultUncaughtExceptionHandler
+注意：子线程中发生了异常，如果没有任何类来接手处理的话，是会直接退出的，而不会记录任何日志。
+所以，如果什么都不做的话，是会出现子线程任务既没执行成功，也没有任何日志提示的“诡异”现象的。
+    public static class ChildThreadExceptionHandler implements Thread.UncaughtExceptionHandler {
+        public void uncaughtException(Thread t, Throwable e) {
+            System.out.println(String.format("handle exception in child thread. %s", e));
+        }
+}
+【线程池的异常处理】
+方法三：通过Future的get方法捕获异常（推荐）
+	使用线程池提交一个能获取到返回信息的方法，也就是        ExecutorService executorService = Executors.newFixedThreadPool(8);
+        Future future = executorService.submit(new ChildThread());
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            System.out.println(String.format("handle exception in child thread. %s", e));
+        } catch (ExecutionException e) {
+            System.out.println(String.format("handle exception in child thread. %s", e));
+        } finally {
+            if (executorService != null) {
+                executorService.shutdown();
+            }
+        }
+1）通过execute提交的任务，才能将它抛出的异常交给UncaughtExceptionHandler。
+2）通过submit提交的任务，无论是抛出的未检测异常还是已检查异常，都将被认为是任务返回状态的一部分。这个异常将被Future.get封装在ExecutionException中重新抛出
+1.5.6	异常泄露敏感信息
+敏感异常包装在非敏感异常抛出，不能防止敏感信息泄露
+ 
+
+1.6	反射
+反射应该是 JVM读取相应类的 字节码文件。
+https://www.jianshu.com/p/9be58ee20dee
+1.6.1	Java反射和相关类/方法
+在运行状态中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意方法和属性；这种动态获取信息以及动态调用对象方法的功能称为java语言的反射机制。它把Java类中的各个成分映射成一个个的Java对象
+与Java反射相关的类如下：
+类名	用途
+Class类	代表类的实体，在运行的Java应用程序中表示类和接口
+Field类	代表类的成员变量（成员变量也称为类的属性）
+Method类	代表类的方法
+Constructor类	代表类的构造方法
+•	获得类相关的方法
+方法	用途
+asSubclass(Class<U> clazz)	把传递的类的对象转换成代表其子类的对象
+Cast	把对象转换成代表类或是接口的对象
+getClassLoader()	获得类的加载器
+getClasses()	返回一个数组，数组中包含该类中所有公共类和接口类的对象
+getDeclaredClasses()	返回一个数组，数组中包含该类中所有类和接口类的对象
+forName(String className)	根据类名返回类的对象
+getName()	获得类的完整路径名字
+newInstance()	创建类的实例
+getPackage()	获得类的包
+getSimpleName()	获得类的名字
+getSuperclass()	获得当前类继承的父类的名字
+getInterfaces()	获得当前类实现的类或是接口
+
+•	获得类中属性(Field)、注解Annotation、构造器Constructor、方法Method相关的方法【都是这四个接口，仅名字差异】
+方法	用途
+getField(String name)	获得某个公有的属性对象
+getFields()	获得所有公有的属性对象
+getDeclaredField(String name)	获得某个属性对象
+getDeclaredFields()	获得所有属性对象
+
+	获得类中注解相关的方法
+	获得类中方法相关的方法
+方法	用途
+getMethod(String name, Class...<?> parameterTypes)	获得该类某个公有的方法
+getMethods()	获得该类所有公有的方法
+getDeclaredMethod(String name, Class...<?> parameterTypes)	获得该类某个方法
+getDeclaredMethods()	
+•	类中其他重要的方法
+方法	用途
+isAnnotation()	如果是注解类型则返回true
+isAnnotationPresent(Class<? extends Annotation> annotationClass)	如果是指定类型注解类型则返回true
+isAnonymousClass()	如果是匿名类则返回true
+isArray()	如果是一个数组类则返回true
+isEnum()	如果是枚举类则返回true
+isInstance(Object obj)	如果obj是该类的实例则返回true
+isInterface()	如果是接口类则返回true
+isLocalClass()	如果是局部类则返回true
+isMemberClass()	如果是内部类则返回true
+
+Field代表类的成员变量（成员变量也称为类的属性）。
+方法	用途
+equals(Object obj)	属性与obj相等则返回true
+get(Object obj)	获得obj中对应的属性值
+set(Object obj, Object value)	设置obj中对应属性值
+Method代表类的方法。
+方法	用途
+invoke(Object obj, Object... args)	传递object对象及参数调用该对象对应的方法
+Constructor代表类的构造方法。
+方法	用途
+newInstance(Object... initargs)	根据传递的参数创建类的对象
+
+1.6.2	代码示例
+1）代码中想要在基础模块channel中引用上层模块ap定义的一个类
+ 
+
+2）使用反射创建对象
+ 
+3）反射私有的构造方法
+ 
+4）获取objectBook中的私有属性TAG值
+ 
+5）使用invoke执行私有方法，如1例子。
+1.6.3	Java中的Class对象
+https://blog.csdn.net/dufufd/article/details/80537638
+从面向对象的角度上来看，类也是对象，它们是类这个类对象，听起来有些抽象，但是在java中的实现就是所有的加载进来的类在虚拟机中都是一个java.lang.Class类的对象，而“类名.class”就是获得这个类的对象(在同一个ClassLoader中，类对象都是单例的)。
+	在java世界里，一切皆对象。从某种意义上来说，java有两种对象：实例对象和Class对象。Java使用Class对象执行其RTTI（运行时类型识别，Run-Time Type Identification），多态是基于RTTI实现的。
+一个类被加载到内存并供我们使用需要经历如下三个阶段：
+1）加载，这是由类加载器（ClassLoader）执行的。通过一个类的全限定名来获取其定义的二进制字节流（Class字节码），将这个字节流所代表的静态存储结构转化为方法去的运行时数据接口，根据字节码在java堆中生成一个代表这个类的java.lang.Class对象。
+2）链接。在链接阶段将验证Class文件中的字节流包含的信息是否符合当前虚拟机的要求，为静态域分配存储空间并设置类变量的初始值（默认的零值），并且如果必需的话，将常量池中的符号引用转化为直接引用。
+3）初始化。到了此阶段，才真正开始执行类中定义的java程序代码。用于执行该类的静态初始器和静态初始块，如果该类有父类的话，则优先对其父类进行初始化。
+
+	所有的类都是在对其第一次使用时，动态加载到JVM中的（懒加载）。当程序创建第一个对类的静态成员的引用时，就会加载这个类。使用new创建类对象的时候也会被当作对类的静态成员的引用。因此java程序在它开始运行之前并非被完全加载，其各个类都是在必需时才加载的。这一点与许多传统语言都不同。动态加载使能的行为，在诸如C++这样的静态加载语言中是很难或者根本不可能复制的。
+1.6.3.1	如何获得Class对象
+有三种获得Class对象的方式：
+1.	Class.forName(“类的全限定名”)
+2.	实例对象.getClass()
+3.	类名.class （类字面常量）
+用.class来创建对Class对象的引用时，不会自动地初始化该Class对象（这点和Class.forName方法不同）
+如果一个字段被static final修饰，我们称为”编译时常量“，就像Dog的s1字段那样，那么在调用这个字段的时候是不会对Dog类进行初始化的。因为被static和final修饰的字段，在编译期就把结果放入了常量池中了。但是，如果只是将一个域设置为static 或final的，还不足以确保这种行为。
+一旦类被加载了到了内存中，那么不论通过哪种方式获得该类的Class对象，它们返回的都是指向同一个java堆地址上的Class引用。jvm不会创建两个相同类型的Class对象。
+其实对于任意一个Class对象，都需要由它的类加载器和这个类本身一同确定其在就Java虚拟机中的唯一性，也就是说，即使两个Class对象来源于同一个Class文件，只要加载它们的类加载器不同，那这两个Class对象就必定不相等。
+1.6.3.2	基本数据类型的Class对象和包装类的Class对象不同
+Class c1 = Integer.class;
+Class c2 = int.class;
+System.out.println(c1);
+System.out.println(c2);
+System.out.println(c1 == c2);  // return false
+1.6.3.3	在包装类中的字段TYPE
+TYPE字段是一个引用，指向对应的基本数据类型的Class对象，如下所示，左右两边相互等价： 
+ 
+1.6.4	Reflect中的Modifier
+Java中的Class、Field、Constructor等类的时候，都可以看到这样一个方法getModifiers，返回类、接口、变量、方法等以整数编码的Java语言修饰符；java.lang.reflect.Modifier类的静态方法和常量对这些编码进行了解析。
+ 
+针对这个int编码，Modifier类提供了解码方法：
+ 
+Modifier类一共提供了12中修饰符的编码表示常量
+ 
+classModifiers、constructorModifiers、methodModifiers、fieldModifiers，它们的作用是返回一个int值将可以应用于一个类的源语言修饰符组合在一起。
+1.7	输入输出流
+1.7.1	常用的输入输出流
+字节流
+InputStream
+        FileInputStream 文件流  能处理二进制文件也能处理文本
+        BufferedInputStream缓冲流  能处理二进制文件也能处理文本
+               BufferedInputStream bis=new BufferedInputStream(new FileInputStream(file1))
+OutputStream
+        FileOutputStream  文件流  能处理二进制文件也能处理文本
+        BufferedOutputStream  缓冲流  能处理二进制文件也能处理文本
+          BufferedOutputStream bis=new BufferedOutputStream(new FileOutputStream(file2))
+字符流
+    Reader
+        FileReader文件流  只能处理文本文件
+        BufferedReader 缓冲流  只能处理文本文件
+                BufferedReader br=new BufferedReader(new FileReader(name))
+                readLine()方法
+    Writer
+        FileWriter 文件流  只能处理文本文件
+        BufferedWriter 缓冲流  只能处理文本文件
+1.7.2	IO流继承关系图
+  	在整个Java.io包中最重要的就是5个类和一个接口。5个类指的是File、OutputStream、InputStream、Writer、Reader；一个接口指的是Serializable。
+File（文件特征与管理）：用于文件或者目录的描述信息，例如生成新目录，修改文件名，删除文件，判断文件所在路径等。
+其他的就是针对字节IO的InputStream/OutputStream和字符IO的Reader/Writer。如下图：
+ 
+
+ 
+ 
+ 
+ 
+
+
