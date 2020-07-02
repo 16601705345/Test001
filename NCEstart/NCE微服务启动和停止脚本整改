@@ -1,0 +1,183 @@
+NCE微服务启动和停止脚本整改
+背景
+外部（R19C00）局点出现问题，进程启动不了，又看不到日志。经分析是由于c++进程，日志模块还没起来，进程就挂了，导致过程的日志启动不了,GTAC无法定位，报了问题。
+目标：GTAC沟通，希望如果启动失败了，最好的是能够在启动失败的时候，把启动失败的情况，显示在界面上。
+沟通结果是，短期先提供一个脚本，如果启动失败，就手工重启，传入一个debug参数，把日志打出来。
+
+启动过程整改
+1、命令行规格
+修改start.sh脚本支持debug参数，支持在命令行执行启动微服务进程，并保留进程启动前后关键日志到微服务日志目录 ${_APP_LOG_DIR}/start.log。方法适用C++/Java/GO微服务。
+
+修改后，脚本使用方法：
+
+$ start.sh [其他参数] [debug] [slot_id]
+
+例如，手工调试启动单实例的进程：
+
+$ ./start.sh debug
+
+手工调试启动多实例PROCESS_SLOT为0的进程：
+
+$ ./start.sh debug 0
+2、修改方法
+2.1 先查看微服务 pub/app_define.json，找到要改造的进程的启动脚本名（不一定都叫start.sh，下面为描述方便都叫start.sh）和参数（不一定有）。
+
+比如"HomeNetworkService"微服务：
+
+   "processes": {
+​        "homenetworkservice": {
+……..
+​              "commands": {                      
+​                    "start": [
+​                            "${APP_ROOT}/bin/start.sh"
+​                    ],
+通过管理面启动进程时，"start"的内容会全部传递给管理面脚本，包括start.sh脚本和参数，例如传了参数的例子：
+
+      "commands": {                      
+​        "start": [
+​            "${APP_ROOT}/bin/start.sh", "arg1", "arg2"
+​        ],
+2.2 一般在判断启动用户的语句后、判断APP_ROOT等环境变量是否有效前，加入对启动参数的解析判断：
+
+# for start debug
+# usage:
+#   start.sh [debug] [slot_id]
+# eg:
+#   $ start.sh debug
+# or
+#   $ start.sh debug 0
+
+__START_DEBUG=0
+__SLOT_ID=0
+
+if [ $# -gt 0 ] ; then
+    if [ $1 = "debug" ] ; then
+        __START_DEBUG=1
+    fi
+    if [ $# -gt 1 ] ; then
+        __SLOT_ID=$2
+    fi
+fi
+
+if [ $__START_DEBUG = 1 ] ; then
+    # import common envs
+    while IFS= read -r line
+    do
+        export "$line"
+    done < $(dirname $0)/../envs/env.properties
+    if [ -z "$AGENT_CONF_FILE" ]
+    then
+        echo "missing env AGENT_CONF_FILE"
+        exit 1
+    fi
+
+    # import microService envs
+    while IFS= read -r line
+    do
+        export "$line"
+    done < $(dirname $0)/../envs/HomeNetworkService.properties
+
+    # import process envs
+    while IFS= read -r line
+    do
+        export "$line"
+    done < $(dirname $0)/../envs/homenetworkservice.properties
+
+    if [ -z "$PROCESS_NAME" ]
+    then
+        echo "missing env PROCESS_NAME"
+        exit 1
+    fi
+
+    # add envs
+    NODE_ID=`awk -F"=" '/localnodeid=/ {print $2}' ${AGENT_CONF_FILE} | /usr/bin/tr -d " "`
+    export NODE_ID
+    export PROCESS_SLOT=$__SLOT_ID
+fi
+注意：
+
+上面脚本不带其他参数，要求start.sh的第1个参数为debug，第2个参数选填slot_id。如果脚本要支持其他参数，需要另外相应修改。
+如果还有其他缺失的定制变量，请自行定制调整。
+插入位置截图：
+
+image-20200615185641667
+
+2.3 最后找到真正启动进程命令行
+
+if [ $__START_DEBUG = 1 ] ; then
+    echo Please check ${_APP_LOG_DIR}/start.log
+    echo Please check $TOMCAT_LOG_DIR, if you want more infornation.
+    $CATALINA_HOME/bin/catalina.sh start 2>&1 > ${_APP_LOG_DIR}/start.log
+else
+    $CATALINA_HOME/bin/catalina.sh start
+fi
+
+#$CATALINA_HOME/bin/catalina.sh start  （原理的启动命令注释掉）
+加入位置参考：
+
+image-20200616173229614
+
+注意：
+
+要求进程正常启动后，各模块不能再往标准输出、标准错误输出打日志，否则${_APP_LOG_DIR}/start.log会越来越大。
+目前要求输出文件名都用 ${_APP_LOG_DIR}/start.log，每次启动会覆盖之前的文件。
+3、测试效果
+在Tomcat没有启动之前，记录${_APP_LOG_DIR}/start.log之中。
+
+image-20200615190620237
+
+在tomcat启动之后，记录在tomcat的/opt/oss/log/NCE/HomeNetworkService/homenetworkservice-1-0/tomcatlog/catalina.log的日志中。
+
+image-20200615190643422
+
+基本上做到启动过程中，不漏掉任何启动信息的目标。
+
+4、脚本参考
+start.sh
+
+停止过程整改
+目前很多微服务进程stop.sh退出时，比较暴力，直接kill -9杀进程，这种方式可能导致进程正在持久化保存的数据丢失，或者进程临终日志无法写入日志文件。在满足停止效率的要求下，一起整改成更优雅的退出方式：
+
+先使用正常退出方法；
+循环等待进程退出；
+如果超过指定时间如5秒之后还没退出，使用kill -9删掉进程。
+1、修改方法
+1.1 先查看微服务 pub/app_define.json，找到要改造的进程的启动脚本名（不一定都叫stop.sh，下面为描述方便都叫stop.sh）和参数（不一定有）。
+
+比如"HomeNetworkService"微服务：
+
+   "processes": {
+​        "homenetworkservice": {
+……..
+​              "commands": {                      
+​                    "stop": [
+​                            "${APP_ROOT}/bin/stop.sh"
+​                    ],
+1.2 在检查用户执行权限后、加入对停止的优雅停止操作
+
+export COMPLETE_PROCESS_NAME=$PROCESS_NAME-$NODE_ID-$PROCESS_SLOT
+export PROC_KEYWORD="DNFW=${COMPLETE_PROCESS_NAME}"
+export MAX_RETRY=5
+
+kill $PID
+
+for i in `seq 1 ${MAX_RETRY}`
+do
+     sleep 1
+     runpid=`pgrep -f "${PROC_KEYWORD}"`
+     if [ "$runpid" == "" ]; then
+         break
+     elif [ $i == ${MAX_RETRY} ]; then
+         kill -9 $runpid
+     else
+         continue
+     fi
+done
+插入位置截图
+
+image-20200615213944219
+
+2、测试效果
+测试效果，可能需要添加打印到相关日志里面去查看，例如：
+
+image-20200615214158681
