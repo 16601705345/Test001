@@ -115,7 +115,7 @@ fi
 #$CATALINA_HOME/bin/catalina.sh start  （原理的启动命令注释掉）
 加入位置参考：
 
-<a href="https://ibb.co/fq7zjwK"><img src="https://i.ibb.co/mb7VfWY/image-20200615185641667.png" alt="image-20200615185641667" border="0"></a>
+image-20200616173229614
 
 注意：
 
@@ -124,7 +124,11 @@ fi
 3、测试效果
 在Tomcat没有启动之前，记录${_APP_LOG_DIR}/start.log之中。
 
+image-20200615190620237
 
+在tomcat启动之后，记录在tomcat的/opt/oss/log/NCE/HomeNetworkService/homenetworkservice-1-0/tomcatlog/catalina.log的日志中。
+
+image-20200615190643422
 
 基本上做到启动过程中，不漏掉任何启动信息的目标。
 
